@@ -19,7 +19,8 @@
     "prepare": "tsdx build"
   },
   "peerDependencies": {
-    "web3": "^1.2.6"
+    "web3": "^1.2.6",
+    "ethers": "^4.0.47"
   },
   "husky": {
     "hooks": {
@@ -29,12 +30,13 @@
   "author": "everdimension <everdimension@gmail.com>",
   "module": "dist/defi-sdk-js.esm.js",
   "devDependencies": {
-    "@types/jest": "^25.1.4",
-    "husky": "^4.2.3",
-    "tsdx": "^0.13.0",
-    "tslib": "^1.11.1",
-    "typescript": "^3.8.3",
-    "web3": "^1.2.6"
+    "@types/jest": "^25.2.2",
+    "husky": "^4.2.5",
+    "tsdx": "^0.13.2",
+    "tslib": "^1.13.0",
+    "typescript": "^3.9.2",
+    "web3": "^1.2.7",
+    "ethers": "^4.0.47"
   },
   "dependencies": {},
   "repository": {
