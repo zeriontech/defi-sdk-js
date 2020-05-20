@@ -1,4 +1,5 @@
 {
+  "type": "module",
   "version": "0.1.0",
   "name": "@zerion/defi-sdk-js",
   "license": "MIT",

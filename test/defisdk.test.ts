@@ -2,6 +2,7 @@ import { DeFiSDK } from '../src/defisdk';
 import { Address } from '../src/protocols/types';
 import { AssetBalance, ProtocolBalance } from '../src/entities/entities';
 import { ProtocolDoesNotExistError } from '../src/errors/protocolDoesNotExist';
+//import { ProtocolDoesNotExistError } from '../src/errors/protocolDoesNotExist';
 
 describe('DeFi SDK', () => {
   const nodeUrl = 'https://eth-mainnet.zerion.io/';
@@ -30,9 +31,14 @@ describe('DeFi SDK', () => {
   });
 
   it('gets wrong protocol balance', async () => {
-    expect(async () => {
-      await defiSdk.getProtocolBalance(account, 'FED Protocol');
-    }).toThrowError(ProtocolDoesNotExistError);
+    const protocol = 'FED';
+    try {
+      await defiSdk.getProtocolBalance(account, protocol);
+    } catch (e) {
+      expect(e).toEqual(
+        new ProtocolDoesNotExistError(protocol)
+      );
+    }
   });
 
   it('gets protocol balances', async () => {
