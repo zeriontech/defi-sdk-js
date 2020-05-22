@@ -35,9 +35,7 @@ describe('DeFi SDK', () => {
     try {
       await defiSdk.getProtocolBalance(account, protocol);
     } catch (e) {
-      expect(e).toEqual(
-        new ProtocolDoesNotExistError(protocol)
-      );
+      expect(e).toEqual(new ProtocolDoesNotExistError(protocol));
     }
   });
 
