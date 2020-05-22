@@ -1,3 +1,1 @@
-export {
-  DeFiSDK
-} from './defisdk'
+export { DeFiSDK } from './defisdk';
