@@ -62,7 +62,7 @@ export class Builder {
 
   tokenMetadata(metadata): TokenMetadata {
     return new TokenMetadata(
-      metadata.address,
+      metadata.token,
       metadata.decimals,
       metadata.name,
       metadata.symbol
