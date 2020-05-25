@@ -1,5 +1,5 @@
 import { Address } from './types';
-import BigNumber from 'bignumber.js';
+import { BigNumber } from 'ethers/utils/bignumber';
 
 export interface ContractAddresses {
   adapterRegistry: Address;
@@ -45,7 +45,8 @@ export interface TokenMetadataInterface {
 export interface TokenBalanceInterface {
   metadata: TokenMetadataInterface;
   balance: BigInt;
-  getAmount(): BigNumber.Instance;
+  //TODO: I wouldn't say I like this dependency on the concrete implementation, but BigNumberish seems to be a wrong interface as well
+  getAmount(): BigNumber;
 }
 
 export interface AssetBalanceInterface {

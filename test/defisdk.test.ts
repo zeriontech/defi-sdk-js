@@ -2,7 +2,8 @@ import { DeFiSDK } from '../src/defisdk';
 import { Address } from '../src/protocols/types';
 import { AssetBalance, ProtocolBalance } from '../src/entities/entities';
 import { ProtocolDoesNotExistError } from '../src/errors/protocolDoesNotExist';
-//import { ProtocolDoesNotExistError } from '../src/errors/protocolDoesNotExist';
+import { TokenAdapters } from '../src/configs/tokenAdapters';
+import { Protocols } from '../src/configs/protocols';
 
 describe('DeFi SDK', () => {
   const nodeUrl = 'https://eth-mainnet.zerion.io/';
@@ -15,7 +16,7 @@ describe('DeFi SDK', () => {
   });
 
   it('gets protocol metadata', async () => {
-    const protocolName = 'Aave';
+    const protocolName = Protocols.AAVE;
     let protocol = await defiSdk.getProtocolMetaData(protocolName);
     expect(protocol.name).toEqual(protocolName);
   });
@@ -26,7 +27,7 @@ describe('DeFi SDK', () => {
   });
 
   it('gets protocol balance', async () => {
-    let balance = await defiSdk.getProtocolBalance(account, 'Compound');
+    let balance = await defiSdk.getProtocolBalance(account, Protocols.COMPOUND);
     expect(balance).toBeInstanceOf(ProtocolBalance);
   });
 
@@ -40,16 +41,23 @@ describe('DeFi SDK', () => {
   });
 
   it('gets protocol balances', async () => {
-    const protocols: string[] = ['Aave', 'Compound'];
+    const protocols: string[] = [Protocols.AAVE, Protocols.COMPOUND];
     let balances = await defiSdk.getProtocolBalances(account, protocols);
     expect(balances.length).toEqual(2);
   });
 
   it('gets token components', async () => {
-    const tokenType = 'Uniswap V2 pool token';
+    const tokenType = TokenAdapters.UNISWAP_V2;
     const tokenAddress: Address = '0xa478c2975ab1ea89e8196811f51a7b7ade33eb11';
     let components = await defiSdk.getTokenComponents(tokenType, tokenAddress);
     expect(components).toBeInstanceOf(AssetBalance);
+  });
+
+  it('gets token component amount', async () => {
+    const tokenType = TokenAdapters.UNISWAP_V2;
+    const tokenAddress: Address = '0xa478c2975ab1ea89e8196811f51a7b7ade33eb11';
+    let components = await defiSdk.getTokenComponents(tokenType, tokenAddress);
+    expect(components.base.getAmount().toString()).toEqual('1');
   });
 
   it('gets account balance', async () => {

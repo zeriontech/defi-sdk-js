@@ -16,10 +16,10 @@
     "build": "tsdx build",
     "test": "tsdx test",
     "lint": "tsdx lint",
+    "lint-fix": "tsdx lint --fix",
     "prepare": "tsdx build"
   },
   "peerDependencies": {
-    "web3": "^1.2.6",
     "ethers": "^4.0.47"
   },
   "husky": {
@@ -28,6 +28,13 @@
     }
   },
   "author": "everdimension <everdimension@gmail.com>",
+  "contributors": [
+    {
+      "name": "Vadim Koleoshkin",
+      "email": "vadim@zerion.io",
+      "url": "https://twitter.com/rockfridrich"
+    }
+  ],
   "module": "dist/defi-sdk-js.esm.js",
   "devDependencies": {
     "@types/jest": "^25.2.2",
@@ -36,11 +43,7 @@
     "ts-node": "^8.10.1",
     "tsdx": "^0.13.2",
     "tslib": "^2.0.0",
-    "typescript": "^3.9.3",
-    "web3": "^1.2.7"
-  },
-  "dependencies": {
-    "bignumber.js": "^9.0.0"
+    "typescript": "^3.9.3"
   },
   "repository": {
     "type": "git",
@@ -50,7 +53,10 @@
     "defi",
     "sdk",
     "smart-contracts",
-    "web3"
+    "web3",
+    "defi-sdk",
+    "ethers",
+    "ethereum"
   ],
   "bugs": {
     "url": "https://github.com/zeriontech/defi-sdk-js/issues"

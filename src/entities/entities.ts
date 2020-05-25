@@ -8,7 +8,7 @@ import {
   TokenMetadataInterface,
 } from '../protocols/interfaces';
 import { Address } from '../protocols/types';
-import BigNumber from 'bignumber.js';
+import { BigNumber } from 'ethers/utils';
 
 export class ProtocolBalance implements ProtocolBalanceInterface {
   balances: [AdapterBalanceInterface];
@@ -83,7 +83,7 @@ export class TokenBalance implements TokenBalanceInterface {
   }
 
   getAmount(): BigNumber {
-    return new BigNumber(this.balance.toString()).dividedBy(
+    return new BigNumber(this.balance.toString()).div(
       new BigNumber(10).pow(this.metadata.decimals.toString())
     );
   }
