@@ -1,9 +1,8 @@
 # defi-sdk-js
 
 A TypeScript/Javascript library for interacting with the [DeFi SDK](https://github.com/zeriontech/defi-sdk).
-Visit docs.zerion.io for full documentation.
 
-## Read the [Documentation](https://docs.zerion.io).
+Visit **[docs.zerion.io](https://docs.zerion.io)** for full documentation.
 
 ## Installation
 
