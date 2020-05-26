@@ -1,6 +1,6 @@
 {
-  "version": "0.1.0",
-  "name": "@zerion/defi-sdk-js",
+  "version": "0.0.1",
+  "name": "defi-sdk",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -35,7 +35,7 @@
       "url": "https://twitter.com/rockfridrich"
     }
   ],
-  "module": "dist/defi-sdk-js.esm.js",
+  "module": "dist/defi-sdk.esm.js",
   "devDependencies": {
     "@types/jest": "^25.2.2",
     "ethers": "^4.0.47",
