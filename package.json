@@ -1,5 +1,5 @@
 {
-  "version": "0.0.1-rc.1",
+  "version": "0.0.1-rc.2",
   "name": "defi-sdk",
   "license": "MIT",
   "main": "dist/index.js",
@@ -19,9 +19,6 @@
     "lint-fix": "tsdx lint --fix",
     "prepare": "tsdx build"
   },
-  "peerDependencies": {
-    "ethers": "^4.0.47"
-  },
   "husky": {
     "hooks": {
       "pre-commit": "tsdx lint"
@@ -36,6 +33,9 @@
     }
   ],
   "module": "dist/defi-sdk.esm.js",
+  "dependencies": {
+    "ethers": "^4.0.47"
+  },
   "devDependencies": {
     "@types/jest": "^25.2.2",
     "ethers": "^4.0.47",

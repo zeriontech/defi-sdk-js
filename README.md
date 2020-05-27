@@ -10,13 +10,6 @@ Visit **[docs.zerion.io](https://docs.zerion.io)** for full documentation.
 npm install defi-sdk
 ```
 
-defi-sdk uses `ethers` as a peer dependency. If you don't have it in your
-project, install it:
-
-```
-npm install ethers
-```
-
 ## Usage
 
 defi-sdk is optimized and bundled with Rollup into multiple formats (CommonJS, UMD, and ES Module).
@@ -172,4 +165,4 @@ Check out the complete API reference [here](src/protocols/interfaces.ts).
 
 ## License
 
-defi-sdk-js is available under the MIT. See the LICENSE file for more info.
+defi-sdk is available under the MIT. See the LICENSE file for more info.
