@@ -1,49 +1,10 @@
 {
-  "version": "0.0.1",
   "name": "defi-sdk",
-  "license": "MIT",
-  "main": "dist/index.js",
-  "typings": "dist/index.d.ts",
-  "files": [
-    "dist",
-    "src"
-  ],
-  "engines": {
-    "node": ">=10"
-  },
+  "version": "0.0.1",
+  "description": "Zerion API Client for JS",
+  "main": "lib/defi-sdk.js",
   "scripts": {
-    "start": "tsdx watch",
-    "build": "tsdx build",
-    "test": "tsdx test",
-    "lint": "tsdx lint",
-    "lint-fix": "tsdx lint --fix",
-    "prepare": "tsdx build"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "tsdx lint"
-    }
-  },
-  "author": "everdimension <everdimension@gmail.com>",
-  "contributors": [
-    {
-      "name": "Vadim Koleoshkin",
-      "email": "vadim@zerion.io",
-      "url": "https://twitter.com/rockfridrich"
-    }
-  ],
-  "module": "dist/defi-sdk.esm.js",
-  "dependencies": {
-    "ethers": "^4.0.47"
-  },
-  "devDependencies": {
-    "@types/jest": "^25.2.2",
-    "ethers": "^4.0.47",
-    "husky": "^4.2.5",
-    "ts-node": "^8.10.1",
-    "tsdx": "^0.13.2",
-    "tslib": "^2.0.0",
-    "typescript": "^3.9.3"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
@@ -52,12 +13,13 @@
   "keywords": [
     "defi",
     "sdk",
-    "smart-contracts",
-    "web3",
-    "defi-sdk",
-    "ethers",
-    "ethereum"
+    "zerion",
+    "api",
+    "client",
+    "react"
   ],
+  "author": "everdimension",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/zeriontech/defi-sdk-js/issues"
   },
