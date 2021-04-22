@@ -3,8 +3,20 @@
   "version": "0.0.1",
   "description": "Zerion API Client for JS",
   "main": "lib/defi-sdk.js",
+  "source": "src/index.ts",
+  "exports": "./lib/defi-sdk.modern.js",
+  "module": "lib/defi-sdk.module.js",
+  "unpkg": "lib/defi-sdk.umd.js",
+  "typings": "lib/index.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "microbundle watch",
+    "build": "microbundle",
+    "prepare": "husky install && npm run build",
+    "pretest": "npm run lint && tsc --noEmit",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "posttest": "npm run format",
+    "lint": "eslint . --cache --fix",
+    "format": "prettier --loglevel warn --write \"**/*.{ts,tsx,css,md}\""
   },
   "repository": {
     "type": "git",
@@ -23,5 +35,20 @@
   "bugs": {
     "url": "https://github.com/zeriontech/defi-sdk-js/issues"
   },
-  "homepage": "https://github.com/zeriontech/defi-sdk-js#readme"
+  "homepage": "https://github.com/zeriontech/defi-sdk-js#readme",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.22.0",
+    "@typescript-eslint/parser": "^4.22.0",
+    "eslint": "^7.24.0",
+    "eslint-plugin-import": "^2.22.1",
+    "husky": "^6.0.0",
+    "lint-staged": "^10.5.4",
+    "microbundle": "^0.13.0",
+    "prettier": "^2.2.1",
+    "typescript": "^4.2.4"
+  },
+  "lint-staged": {
+    "*.{js,ts}": "eslint --cache --fix",
+    "*.{js,ts,md}": "prettier --write"
+  }
 }
