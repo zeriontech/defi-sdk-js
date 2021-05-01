@@ -10,8 +10,8 @@ npm install defi-sdk
 
 ## Getting Started
 
-```sh
-import { client } from 'defi-sdk';
+```js
+import { client } from "defi-sdk";
 
 client.configure({ url: endpoint, apiToken: API_TOKEN });
 ```
