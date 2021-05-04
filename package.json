@@ -1,6 +1,6 @@
 {
   "name": "defi-sdk",
-  "version": "0.0.1",
+  "version": "0.1.0-alpha.0",
   "description": "Zerion API Client for JS",
   "main": "lib/defi-sdk.js",
   "exports": "./lib/defi-sdk",
