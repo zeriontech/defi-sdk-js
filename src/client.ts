@@ -14,7 +14,7 @@ import { verifyByRequestId } from "./requests/verifyByRequestId";
 import { shouldReturnCachedData } from "./cache/shouldReturnCachedData";
 import { defaultCachePolicy } from "./cache/defaultCachePolicy";
 import { RequestCache } from "./cache/Cache";
-import { createSocketNamespace } from "./createSocketNamespace";
+import { createSocketNamespace } from "./socket/createSocketNamespace";
 import { assetsPrices } from "./domains/assetsPrices";
 import { assetsInfo } from "./domains/assetsInfo";
 import { addressLoans } from "./domains/addressLoans";

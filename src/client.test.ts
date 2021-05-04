@@ -1,24 +1,24 @@
 import { Client } from "./client";
-import { createSocketNamespace } from "./createSocketNamespace";
+import { endpoint, API_TOKEN } from "../examples/config";
 
 describe("Client", () => {
   test("instantiates", () => {
-    const client = new Client("ws");
+    const client = new Client(null);
     expect(client).toBeTruthy();
   });
 
   test("makes successful request", done => {
-    const client = new Client("ws");
+    const client = new Client({ url: endpoint, apiToken: API_TOKEN });
     client.subscribe({
-      socketNamespace: createSocketNamespace("assets"),
-      method: "get",
+      namespace: "assets",
       body: {
         scope: ["prices"],
         payload: { asset_codes: ["eth"] },
       },
-      onUpdate: f => {
-        const data = f(null);
+      onMessage: (event, data) => {
+        expect(event).toEqual("received");
         expect(data).toBeTruthy();
+        expect(data.payload.prices).toBeTruthy();
         done();
       },
     });

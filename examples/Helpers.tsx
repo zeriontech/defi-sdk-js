@@ -23,7 +23,11 @@ function ImperativeAssetsPrices({ currency }: { currency: string }) {
   return <span>client.assetsPrices()</span>;
 }
 
-export function Helpers({ currency }: { currency: string }) {
+export function Helpers({
+  currency,
+}: {
+  currency: string;
+}): React.ReactElement {
   return (
     <VStack gap={20}>
       <EntryInfo
