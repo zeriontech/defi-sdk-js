@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from "react";
-import { useAssetsPrices } from "../src/react";
+import { useAssetsFullInfo, useAssetsPrices } from "../src/react";
 import { useAssetsInfo } from "../src/react";
 import { useAddressLoans } from "../src/react";
 import { EntryInfo } from "./EntryInfo";
@@ -110,6 +110,50 @@ export function Helpers({
               ))}
             </VStack>
           );
+        }}
+      />
+      <EntryInfo
+        title="useAssetsFullInfo [404]"
+        entry={useAssetsFullInfo({
+          payload: useMemo(
+            () => ({
+              currency,
+              asset_code: "lol",
+            }),
+            [currency]
+          ),
+        })}
+        render={entry => {
+          if (!entry.data) {
+            return null;
+          }
+          const entity = entry.data["full-info"];
+          if (!entity) {
+            return <span>Entity not found</span>;
+          }
+          return <VStack gap={4}>{entity.title}</VStack>;
+        }}
+      />
+      <EntryInfo
+        title="useAssetsFullInfo"
+        entry={useAssetsFullInfo({
+          payload: useMemo(
+            () => ({
+              currency,
+              asset_code: UNI,
+            }),
+            [currency]
+          ),
+        })}
+        render={entry => {
+          if (!entry.data) {
+            return null;
+          }
+          const entity = entry.data["full-info"];
+          if (!entity) {
+            return <span>Entity not found</span>;
+          }
+          return <VStack gap={4}>full info: {entity.title}</VStack>;
         }}
       />
       <ImperativeAssetsPrices currency={currency} />

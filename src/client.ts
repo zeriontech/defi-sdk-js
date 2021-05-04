@@ -276,7 +276,7 @@ export class BareClient {
     mergeStrategy = mergeDict,
     ...convenienceOptions
   }: CachedRequestOptions<T, Namespace, ScopeName>): {
-    entryStore: EntryStore;
+    entryStore: EntryStore<T>;
     unsubscribe: Unsubscribe;
   } {
     // const key = createKey(options);

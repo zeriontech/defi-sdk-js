@@ -1,5 +1,5 @@
 import React from "react";
-import { Entry } from "../src";
+import type { Entry } from "../src";
 import { DataStatus } from "../src/cache/DataStatus";
 
 export function EntryInfo<T>({

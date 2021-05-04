@@ -4,6 +4,35 @@ interface Data<T> {
   [key: string]: T;
 }
 
+interface ReceivedEvent<T> {
+  event: SubscriptionEvent & "received";
+  prevData: Data<T> | null;
+  newData: Data<T>;
+  getId?: typeof defaultGetId;
+}
+
+type UpdateEventList<T> = {
+  event: SubscriptionEvent & ("changed" | "appended" | "removed");
+  prevData: Data<T> | null;
+  newData: T[];
+  getId?: typeof defaultGetId;
+};
+
+type DictEvent<T> = ReceivedEvent<T> | UpdateEventList<T>;
+
+interface ListEvent<T> {
+  event: SubscriptionEvent;
+  prevData: T[] | null;
+  newData: T[];
+  getId?: typeof defaultGetId;
+}
+
+interface EntityEvent<T> {
+  event: SubscriptionEvent;
+  prevData: T | null;
+  newData: T;
+}
+
 function received<T>(data: T) {
   return data;
 }
@@ -24,28 +53,11 @@ function changed<T>(
   return copy;
 }
 
-interface ReceivedEvent<T> {
-  event: SubscriptionEvent & "received";
-  prevData: Data<T> | null;
-  newData: Data<T>;
-  getId?: typeof defaultGetId;
-}
-
-type Event<T> =
-  | ReceivedEvent<T>
-  | {
-      event: SubscriptionEvent & ("changed" | "appended" | "removed");
-      prevData: Data<T> | null;
-      newData: T[];
-      getId?: typeof defaultGetId;
-    };
-
-function isReceived<T>(x: Event<T>): x is ReceivedEvent<T> {
+function isReceived<T>(x: DictEvent<T>): x is ReceivedEvent<T> {
   return x.event === "received";
 }
 
-export function mergeDict<T>(eventData: Event<T>): Data<T> {
-  // const { event, prevData, newData } = eventData;
+export function mergeDict<T>(eventData: DictEvent<T>): Data<T> {
   if (isReceived(eventData)) {
     return received(eventData.newData);
   } else {
@@ -57,11 +69,8 @@ export function mergeDict<T>(eventData: Event<T>): Data<T> {
   throw new Error(`Unexpected event: ${event}`);
 }
 
-interface ListEvent<T> {
-  event: SubscriptionEvent;
-  prevData: T[] | null;
-  newData: T[];
-  getId?: typeof defaultGetId;
+export function mergeSingleEntity<T>(eventData: EntityEvent<T>): T {
+  return eventData.newData;
 }
 
 function listReceived<T>(data: T[]) {

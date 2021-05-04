@@ -1,11 +1,14 @@
 import React, { useCallback, useMemo, useReducer, useState } from "react";
 import ReactDOM from "react-dom";
-import type { CachePolicy, Entry } from "../src";
+import { CachePolicy, Entry, useAssetsInfo } from "../src";
 import { client } from "../src";
 import { DataStatus } from "../src/cache/DataStatus";
+import { useAssetsFullInfo } from "../src/react";
 // import { createNamespaceFactory } from "../src/createSocketNamespace";
 import { useSubscription } from "../src/react/useSubscription";
+import { ResponsePayload } from "../src/requests/ResponsePayload";
 import { endpoint, API_TOKEN } from "./config";
+import { EntryInfo } from "./EntryInfo";
 import { Helpers } from "./Helpers";
 import { VStack } from "./VStack";
 
@@ -22,6 +25,34 @@ interface Asset {
   asset_code: string;
   symbol: string;
   price: { value: number };
+}
+
+function PriceEntry({
+  entry,
+}: {
+  entry: Entry<ResponsePayload<{ [key: string]: Asset }, "prices">>;
+}) {
+  return (
+    <pre>
+      {Object.keys(entry)
+        .filter(key => key !== "data")
+        .map(key => (
+          <div key={key}>
+            {key}: {(entry as any)[key]}
+          </div>
+        ))}
+      {entry.data ? (
+        Object.values(entry.data.prices).map(asset => (
+          <div key={asset.asset_code}>
+            {asset.symbol}price:{" "}
+            {asset.price ? asset.price.value : <i>no price</i>}
+          </div>
+        ))
+      ) : (
+        <span>no data</span>
+      )}
+    </pre>
+  );
 }
 
 function Prices({
@@ -46,39 +77,7 @@ function Prices({
   return (
     <>
       <p>cachePolicy: {cachePolicy}</p>
-      <EntryInfo entry={entry} />
-    </>
-  );
-}
-
-function EntryInfo({
-  entry,
-}: {
-  entry: Entry<{ prices: { [key: string]: Asset } }>;
-}) {
-  if (!entry) {
-    return <span>no entry</span>;
-  }
-  return (
-    <>
-      <pre>
-        {Object.keys(entry)
-          .filter(key => key !== "data")
-          .map(key => (
-            <div key={key}>
-              {key}: {(entry as any)[key]}
-            </div>
-          ))}
-        {entry.data ? (
-          Object.values(entry.data.prices).map(asset => (
-            <div key={asset.asset_code}>
-              {asset.symbol}price: {asset.price.value}
-            </div>
-          ))
-        ) : (
-          <span>no data</span>
-        )}
-      </pre>
+      <EntryInfo entry={entry} render={entry => <PriceEntry entry={entry} />} />
     </>
   );
 }
@@ -116,6 +115,26 @@ function Market() {
 }
 
 const currencies = ["usd", "eur", "rub"];
+
+function EnabledTest({ currency }: { currency: string }) {
+  const [enabled, toggleEnabled] = useReducer(x => !x, false);
+  return (
+    <div>
+      <div>enabled: {String(enabled)}</div>
+      <button onClick={toggleEnabled}>toggle enabled</button>
+      <EntryInfo
+        entry={useAssetsFullInfo({
+          enabled,
+          payload: useMemo(() => ({ asset_code: USDC, currency }), [currency]),
+        })}
+        render={entry => {
+          const fullInfo = entry.data && entry.data["full-info"];
+          return fullInfo ? <span>{fullInfo.title}</span> : null;
+        }}
+      />
+    </div>
+  );
+}
 
 function App() {
   const assetCodes = useMemo(() => [ETH, USDC, UNI], []);
@@ -174,6 +193,7 @@ function App() {
         ))}
       </div>
       <Helpers currency={currency} />
+      <EnabledTest />
     </VStack>
   );
 }
