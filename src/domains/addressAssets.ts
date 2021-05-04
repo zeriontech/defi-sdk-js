@@ -1,18 +1,20 @@
-import type { Loan } from "../entities/ProtocolInfo/Loan";
+import type { AddressAsset } from "../entities/AddressAsset";
 import type { AddressParams } from "./AddressParams";
-import { mergeList } from "../shared/mergeStrategies";
 import { createDomainRequest } from "./createDomainRequest";
 
 export type RequestPayload = AddressParams & {
   currency: string;
+  asset_codes?: string[];
 };
-export type ResponseData = Loan[];
 
+export interface ResponseData {
+  [key: string]: AddressAsset;
+}
 export const namespace = "address";
-export const scope = "loans";
-export const mergeStrategy = mergeList;
+export const scope = "assets";
+export const getId = (item: AddressAsset): string => item.asset.asset_code;
 
-export const addressLoans = createDomainRequest<
+export const addressAssets = createDomainRequest<
   RequestPayload,
   ResponseData,
   typeof namespace,
@@ -20,5 +22,5 @@ export const addressLoans = createDomainRequest<
 >({
   namespace,
   scope,
-  mergeStrategy,
+  getId,
 });

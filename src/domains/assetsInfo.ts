@@ -14,14 +14,19 @@ export interface RequestPayload {
 
 export type ResponseData = AssetInfo[];
 
+export const namespace = "assets";
+export const scope = "info";
+export const getId = (item: AssetInfo): string => item.asset.asset_code;
+export const mergeStrategy = mergeList;
+
 export const assetsInfo = createDomainRequest<
   RequestPayload,
   ResponseData,
-  "assets",
-  "info"
+  typeof namespace,
+  typeof scope
 >({
-  namespace: "assets",
-  scopeName: "info",
-  getId: (item: AssetInfo) => item.asset.asset_code,
-  mergeStrategy: mergeList,
+  namespace,
+  scope,
+  getId,
+  mergeStrategy,
 });

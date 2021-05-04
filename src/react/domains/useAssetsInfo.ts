@@ -1,16 +1,20 @@
 import type { RequestPayload, ResponseData } from "../../domains/assetsInfo";
-import type { AssetInfo } from "../../entities/AssetInfo";
-import { mergeList } from "../../shared/mergeStrategies";
+import {
+  namespace,
+  scope,
+  mergeStrategy,
+  getId,
+} from "../../domains/assetsInfo";
 import { createDomainHook } from "./createDomainHook";
 
 export const useAssetsInfo = createDomainHook<
   RequestPayload,
   ResponseData,
-  "assets",
-  "info"
+  typeof namespace,
+  typeof scope
 >({
-  namespace: "assets",
-  scopeName: "info",
-  getId: (item: AssetInfo) => item.asset.asset_code,
-  mergeStrategy: mergeList,
+  namespace,
+  scope,
+  getId,
+  mergeStrategy,
 });

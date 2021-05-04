@@ -9,13 +9,17 @@ export interface RequestPayload {
 
 export type ResponseData = null | AssetFullInfo;
 
+export const namespace = "assets";
+export const scope = "full-info";
+export const mergeStrategy = mergeSingleEntity;
+
 export const assetsFullInfo = createDomainRequest<
   RequestPayload,
   ResponseData,
-  "assets",
-  "full-info"
+  typeof namespace,
+  typeof scope
 >({
-  namespace: "assets",
-  scopeName: "full-info",
-  mergeStrategy: mergeSingleEntity,
+  namespace,
+  scope,
+  mergeStrategy,
 });

@@ -19,12 +19,12 @@ export function createDomainHook<
   ScopeName extends string
 >({
   namespace,
-  scopeName,
+  scope,
   getId,
   mergeStrategy,
 }: {
   namespace: Namespace;
-  scopeName: ScopeName;
+  scope: ScopeName;
   getId?: (x: any) => string | number;
   mergeStrategy?: MergeStrategy;
 }) {
@@ -41,7 +41,7 @@ export function createDomainHook<
       mergeStrategy: mergeStrategy || options.mergeStrategy,
       body: useMemo(
         () => ({
-          scope: [scopeName],
+          scope: [scope],
           payload,
         }),
         [payload]

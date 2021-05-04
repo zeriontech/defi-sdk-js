@@ -5,7 +5,7 @@ import { useAddressLoans } from "../src/react";
 import { EntryInfo } from "./EntryInfo";
 import { VStack } from "./VStack";
 import { TEST_ADDRESS } from "./config";
-import { client } from "../src";
+import { client, useAddressAssets } from "../src";
 
 const USDC = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48";
 const UNI = "0x1f9840a85d5af5bf1d1762f925bdaddc4201f984";
@@ -154,6 +154,35 @@ export function Helpers({
             return <span>Entity not found</span>;
           }
           return <VStack gap={4}>full info: {entity.title}</VStack>;
+        }}
+      />
+      <EntryInfo
+        title="useAddressAssets"
+        entry={useAddressAssets({
+          payload: useMemo(
+            () => ({
+              currency,
+              address: TEST_ADDRESS,
+            }),
+            [currency]
+          ),
+        })}
+        render={entry => {
+          if (!entry.data) {
+            return null;
+          }
+          const { assets } = entry.data;
+          if (!assets) {
+            return <span>Entity not found</span>;
+          }
+          return Object.values(assets)
+            .slice(0, 5)
+            .map(addressAsset => (
+              <div key={addressAsset.asset.asset_code}>
+                {addressAsset.asset.name}{' '}
+                {addressAsset.quantity}
+              </div>
+            ));
         }}
       />
       <ImperativeAssetsPrices currency={currency} />

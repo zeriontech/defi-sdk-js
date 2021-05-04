@@ -1,14 +1,14 @@
-import { RequestPayload, ResponseData } from "../../domains/addressLoans";
-import { mergeList } from "../../shared/mergeStrategies";
+import type { RequestPayload, ResponseData } from "../../domains/addressLoans";
+import { namespace, scope, mergeStrategy } from "../../domains/addressLoans";
 import { createDomainHook } from "./createDomainHook";
 
 export const useAddressLoans = createDomainHook<
   RequestPayload,
   ResponseData,
-  "address",
-  "loans"
+  typeof namespace,
+  typeof scope
 >({
-  namespace: "address",
-  scopeName: "loans",
-  mergeStrategy: mergeList,
+  namespace,
+  scope,
+  mergeStrategy,
 });

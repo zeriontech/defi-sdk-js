@@ -2,16 +2,16 @@ import type {
   RequestPayload,
   ResponseData,
 } from "../../domains/assetsFullInfo";
-import { mergeSingleEntity } from "../../shared/mergeStrategies";
+import { namespace, scope, mergeStrategy } from "../../domains/assetsFullInfo";
 import { createDomainHook } from "./createDomainHook";
 
 export const useAssetsFullInfo = createDomainHook<
   RequestPayload,
-  ResponseData | null,
-  "assets",
-  "full-info"
+  ResponseData,
+  typeof namespace,
+  typeof scope
 >({
-  namespace: "assets",
-  scopeName: "full-info",
-  mergeStrategy: mergeSingleEntity,
+  namespace,
+  scope,
+  mergeStrategy,
 });

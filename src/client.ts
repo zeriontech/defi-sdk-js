@@ -18,6 +18,8 @@ import { createSocketNamespace } from "./socket/createSocketNamespace";
 import { assetsPrices } from "./domains/assetsPrices";
 import { assetsInfo } from "./domains/assetsInfo";
 import { addressLoans } from "./domains/addressLoans";
+import { addressAssets } from "./domains/addressAssets";
+import { assetsFullInfo } from "./domains/assetsFullInfo";
 
 const subsciptionEvents: SubscriptionEvent[] = [
   "received",
@@ -337,9 +339,11 @@ export class BareClient {
 }
 
 export class Client extends BareClient {
-  assetsPrices = assetsPrices;
-  assetsInfo = assetsInfo;
+  addressAssets = addressAssets;
   addressLoans = addressLoans;
+  assetsPrices = assetsPrices;
+  assetsFullInfo = assetsFullInfo;
+  assetsInfo = assetsInfo;
 }
 
 export const client = new Client(null);

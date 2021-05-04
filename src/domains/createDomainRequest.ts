@@ -25,12 +25,12 @@ export function createDomainRequest<
   ScopeName extends string
 >({
   namespace,
-  scopeName,
+  scope,
   getId,
   mergeStrategy,
 }: {
   namespace: Namespace;
-  scopeName: ScopeName;
+  scope: ScopeName;
   getId?: (x: any) => string | number;
   mergeStrategy?: MergeStrategy;
   client?: Client;
@@ -64,7 +64,7 @@ export function createDomainRequest<
       getId: getId || options.getId,
       mergeStrategy: mergeStrategy || options.mergeStrategy,
       body: {
-        scope: [scopeName],
+        scope: [scope],
         payload,
       },
     });
