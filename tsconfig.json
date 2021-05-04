@@ -1,7 +1,8 @@
 {
-  "include": ["src", "examples"],
+  "include": ["src"],
   "compilerOptions": {
     "target": "es6",
+    "declaration": true,
     "module": "commonjs",
     "moduleResolution": "node",
     "strict": true,

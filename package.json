@@ -3,13 +3,7 @@
   "version": "0.0.1",
   "description": "Zerion API Client for JS",
   "main": "lib/defi-sdk.js",
-  "source": "src/index.ts",
-  "exports": {
-    ".": "./lib/defi-sdk.modern.js",
-    "./react": "./lib/react.modern.js"
-  },
-  "module": "lib/defi-sdk.module.js",
-  "unpkg": "lib/defi-sdk.umd.js",
+  "exports": "./lib/defi-sdk",
   "typings": "lib/index.d.ts",
   "scripts": {
     "start": "parcel ./index.html --port 3000",
@@ -59,7 +53,6 @@
     "microbundle": "^0.13.0",
     "parcel-bundler": "^1.12.5",
     "prettier": "^2.2.1",
-    "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "ts-jest": "^26.5.5",
     "typescript": "^4.2.4"
@@ -86,6 +79,7 @@
     ]
   },
   "dependencies": {
+    "react": "^17.0.2",
     "socket.io-client": "^2.4.0"
   }
 }
