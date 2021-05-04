@@ -1,5 +1,12 @@
 # defi-sdk
 
+<div>
+  <a href="https://www.npmjs.com/package/defi-sdk">
+    <img src="https://img.shields.io/npm/v/defi-sdk" alt="Download on NPM">
+  </a>
+  <br>
+</div>
+
 A JS client for interacting with [Zerion API](https://github.com/zeriontech/zerion-api)
 
 ## Install
