@@ -3,7 +3,10 @@
   "version": "0.1.0-alpha.0",
   "description": "Zerion API Client for JS",
   "main": "lib/defi-sdk.js",
-  "exports": "./lib/defi-sdk",
+  "source": "./src/index.ts",
+  "exports": "./lib/defi-sdk.modern.js",
+  "module": "lib/defi-sdk.module.js",
+  "unpkg": "lib/defi-sdk.umd.js",
   "typings": "lib/index.d.ts",
   "scripts": {
     "start": "parcel ./index.html --port 3000",
