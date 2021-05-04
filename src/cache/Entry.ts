@@ -62,7 +62,6 @@ export class EntryStore<T = any> extends Store<Entry<T>> {
 
   removeListener(cb: (state: Entry<T>) => void): void {
     super.removeListener(cb);
-    console.log("entrystore removeListener", this.listeners.size);
 
     if (this.listeners.size === 0) {
       // no more subscribers left, unsub from socket

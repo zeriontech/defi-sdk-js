@@ -12,10 +12,14 @@ module.exports = {
     "import/parsers": {
       "@typescript-eslint/parser": [".js", ".jsx", ".ts", ".tsx"],
     },
+    react: {
+      version: "detect",
+    },
   },
   plugins: ["@typescript-eslint"],
   rules: {
     "@typescript-eslint/no-explicit-any": "off",
+    "no-console": "error",
   },
   env: {
     browser: true,

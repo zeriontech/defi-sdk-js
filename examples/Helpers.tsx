@@ -15,6 +15,7 @@ function ImperativeAssetsPrices({ currency }: { currency: string }) {
     const { unsubscribe } = client.assetsPrices({
       payload: { currency, asset_codes: [UNI, USDC] },
       onData: data => {
+        // eslint-disable-next-line no-console
         console.log("data received:", data);
       },
     });

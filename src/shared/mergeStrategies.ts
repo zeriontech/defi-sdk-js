@@ -21,7 +21,6 @@ function changed<T>(
     const id = getId(item);
     copy[id] = item;
   });
-  console.log("handling changed", prevData, copy);
   return copy;
 }
 

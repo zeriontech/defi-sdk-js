@@ -90,10 +90,7 @@ export function useSubscription<
   useEffect(() => {
     guardedSetEntry(client.getFromCache(options));
     const { unsubscribe } = client.cachedSubscribe(options);
-    return () => {
-      console.log("effect cancel");
-      unsubscribe();
-    };
+    return unsubscribe;
   }, [options, guardedSetEntry, client]);
 
   return entry || emptyEntry;
