@@ -19,6 +19,7 @@ export type HookOptions<
 > = ConvenienceOptionsCached<Namespace, ScopeName> & {
   client?: Client;
   keepStaleData?: boolean;
+  enabled?: boolean;
 };
 
 export function useSubscription<
@@ -26,7 +27,8 @@ export function useSubscription<
   Namespace extends string = any,
   ScopeName extends string = any
 >({
-  keepStaleData,
+  keepStaleData = false,
+  enabled = true,
   client: currentClient,
   ...hookOptions
 }: HookOptions<Namespace, ScopeName>): Entry<ResponsePayload<T, ScopeName>> {
@@ -88,10 +90,13 @@ export function useSubscription<
   ]);
 
   useEffect(() => {
+    if (!enabled) {
+      return;
+    }
     guardedSetEntry(client.getFromCache(options));
     const { unsubscribe } = client.cachedSubscribe(options);
     return unsubscribe;
-  }, [options, guardedSetEntry, client]);
+  }, [enabled, options, guardedSetEntry, client]);
 
   return entry || emptyEntry;
 }
