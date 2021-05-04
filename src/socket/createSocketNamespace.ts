@@ -15,7 +15,7 @@ export const createSocketNamespace = <T extends string>(
   namespaceName = namespace
 ): SocketNamespace<T> => {
   if (!cached[namespace]) {
-    const socket = io(`${endpoint}/${namespace}`, {
+    const socket = io(new URL(namespace, endpoint).toString(), {
       transports: ["websocket"],
       timeout: 60000,
       query: { api_token: apiToken },
