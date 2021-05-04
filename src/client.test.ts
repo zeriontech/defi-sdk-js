@@ -1,5 +1,7 @@
 import { Client } from "./client";
-import { endpoint, API_TOKEN } from "../examples/config";
+
+const endpoint = "wss://api-staging.zerion.io";
+const API_TOKEN = "Zerion.0JOY6zZTTw6yl5Cvz9sdmXc7d5AhzVMG";
 
 describe("Client", () => {
   test("instantiates", () => {
