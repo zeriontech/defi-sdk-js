@@ -7,6 +7,7 @@ export {
 export type { MergeStrategy } from "./shared/mergeStrategies";
 export type { CachePolicy } from "./cache/CachePolicy";
 export type { Entry } from "./cache/Entry";
+export { DataStatus } from "./cache/DataStatus";
 
 // react bindings
 export { useSubscription } from "./react/useSubscription";
