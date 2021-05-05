@@ -10,6 +10,9 @@ function getWaitTime() {
 }
 
 export function handlePageVisibility(socket: typeof Socket): Unsubscribe {
+  if (typeof document === "undefined") {
+    return () => {}; // eslint-disable-line @typescript-eslint/no-empty-function
+  }
   let active = true;
   let timerId: any;
   let disconnected = false;
