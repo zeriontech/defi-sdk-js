@@ -5,6 +5,7 @@ export {
   mergeListReverseChronological,
 } from "./shared/mergeStrategies";
 export type { MergeStrategy } from "./shared/mergeStrategies";
+export type { SocketNamespace } from "./shared/SocketNamespace";
 export type { CachePolicy } from "./cache/CachePolicy";
 export type { Entry } from "./cache/Entry";
 export { DataStatus } from "./cache/DataStatus";
