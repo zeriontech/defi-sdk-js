@@ -9,9 +9,11 @@ import { client as defaultClient } from "../client";
 import type { ResponsePayload } from "../requests/ResponsePayload";
 import { getInitialState } from "../cache/Entry";
 import { hasData } from "../cache/hasData";
+import { DataStatus } from "../cache/DataStatus";
 import { SocketNamespace } from "../shared/SocketNamespace";
 
-const emptyEntry = getInitialState<any>();
+const emptyEntryIdle = getInitialState<any>();
+const emptyEntryLoading = getInitialState<any>(DataStatus.requested);
 
 export type HookOptions<
   Namespace extends string = any,
@@ -98,5 +100,6 @@ export function useSubscription<
     return unsubscribe;
   }, [enabled, options, guardedSetEntry, client]);
 
+  const emptyEntry = enabled ? emptyEntryLoading : emptyEntryIdle;
   return entry || emptyEntry;
 }

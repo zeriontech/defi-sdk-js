@@ -8,8 +8,8 @@ export interface Entry<T> {
   timestamp: number;
 }
 
-export const getInitialState = <T>(): Entry<T> => ({
-  status: DataStatus.noRequests,
+export const getInitialState = <T>(initialStatus?: DataStatus): Entry<T> => ({
+  status: initialStatus ?? DataStatus.noRequests,
   data: null,
   timestamp: 0,
 });
