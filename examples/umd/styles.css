@@ -1,0 +1,18 @@
+body {
+  padding: 20px;
+  font-family: Helvetica, sans-serif;
+}
+.stack {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-columns: min-content auto;
+  grid-gap: 8px;
+}
+.stack + .stack {
+  margin-top: 20px;
+}
+.token-icon {
+  display: block;
+  width: 24px;
+  height: 24px;
+}

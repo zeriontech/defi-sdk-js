@@ -8,32 +8,13 @@
       rel="stylesheet"
       href="https://unpkg.com/normalize.css@7.0.0/normalize.css"
     />
+    <link rel="stylesheet" href="/styles.css" />
     <link rel="icon" href="https://app.zerion.io/favicon.png" />
     <script src="https://unpkg.com/socket.io-client@2.4.0/dist/socket.io.js"></script>
     <script src="https://unpkg.com/defi-sdk@0.1.0-alpha.11/lib/defi-sdk.umd.js"></script>
-    <style>
-      body {
-        padding: 20px;
-        font-family: Helvetica, sans-serif;
-      }
-      .stack {
-        display: grid;
-        grid-auto-flow: column;
-        grid-template-columns: min-content auto;
-        grid-gap: 8px;
-      }
-      .stack + .stack {
-        margin-top: 20px;
-      }
-      .token-icon {
-        display: block;
-        width: 24px;
-        height: 24px;
-      }
-    </style>
   </head>
   <body>
-    <h2>hello defi sdk</h2>
+    <h2>Hello, defi-sdk!</h2>
     <div id="root"></div>
 
     <script>
@@ -73,8 +54,8 @@
                    <div>
                      <div>${asset.name}</div>
                      <div style="color: #999">${commonQuantity} ${
-                       asset.symbol
-                     } · ${price}</div>
+                 asset.symbol
+               } · ${price}</div>
                    </div>
                  </div>
            `;
