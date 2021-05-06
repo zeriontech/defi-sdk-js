@@ -19,7 +19,8 @@
     "format": "prettier --loglevel warn --write \"**/*.{ts,tsx,css,md}\"",
     "test:jest": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "start:react-example": "parcel ./examples/react-example/index.html --port 3000"
   },
   "repository": {
     "type": "git",
@@ -83,6 +84,6 @@
   },
   "dependencies": {
     "react": ">=16.0.0",
-    "socket.io-client": ">=2.3.0"
+    "socket.io-client": "^2.3.0"
   }
 }
