@@ -4,7 +4,6 @@ import { CachePolicy, Entry, useAssetsInfo } from "../src";
 import { client } from "../src";
 import { DataStatus } from "../src/cache/DataStatus";
 import { useAssetsFullInfo } from "../src/react";
-// import { createNamespaceFactory } from "../src/createSocketNamespace";
 import { useSubscription } from "../src/react/useSubscription";
 import { ResponsePayload } from "../src/requests/ResponsePayload";
 import { endpoint, API_TOKEN } from "./config";
@@ -13,9 +12,6 @@ import { Helpers } from "./Helpers";
 import { VStack } from "./VStack";
 
 client.configure({ url: endpoint, apiToken: API_TOKEN });
-
-// const endpoint = "wss://api-staging.zerion.io";
-// const namespace = createNamespaceFactory(endpoint);
 
 const ETH = "eth";
 const USDC = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48";
@@ -193,7 +189,7 @@ function App() {
         ))}
       </div>
       <Helpers currency={currency} />
-      <EnabledTest />
+      <EnabledTest currency={currency} />
     </VStack>
   );
 }

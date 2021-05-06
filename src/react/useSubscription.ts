@@ -103,7 +103,9 @@ export function useSubscription<
     [client, hookOptions]
   );
   if (newEntry !== entry) {
-    guardedSetEntry(newEntry);
+    if (!keepStaleData) {
+      guardedSetEntry(newEntry);
+    }
   }
 
   useEffect(() => {
