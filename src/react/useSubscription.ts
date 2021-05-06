@@ -91,6 +91,21 @@ export function useSubscription<
     socketNamespace,
   ]);
 
+  /**
+   * NOTE:
+   * Entry might have changed has changed since our last render,
+   * so we read from cache synchronously and update data if it had changed
+   * This should be done synchronously to avoid returning mismatched values
+   * https://github.com/facebook/react/blob/93a0c2830534cfbc4e6be3ecc9c9fc34dee3cfaa/packages/use-subscription/src/useSubscription.js#L41-L56
+   */
+  const newEntry: null | Entry<ResponsePayload<T, ScopeName>> = useMemo(
+    () => client.getFromCache(hookOptions),
+    [client, hookOptions]
+  );
+  if (newEntry !== entry) {
+    guardedSetEntry(newEntry);
+  }
+
   useEffect(() => {
     if (!enabled) {
       return;
