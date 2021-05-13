@@ -1,6 +1,6 @@
 import React from "react";
-import type { Entry } from "../src";
-import { DataStatus } from "../src/cache/DataStatus";
+import type { Entry } from "../../src";
+import { DataStatus } from "../../src/cache/DataStatus";
 
 export function EntryInfo<T>({
   entry,

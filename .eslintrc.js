@@ -36,5 +36,11 @@ module.exports = {
       files: ["*.test.{js,ts,tsx}", "test.{js,ts,tsx}"],
       env: { jest: true },
     },
+    {
+      files: ["examples/**/*.{js,ts,tsx}"],
+      rules: {
+        "@typescript-eslint/explicit-module-boundary-types": "off",
+      },
+    },
   ],
 };

@@ -1,17 +1,18 @@
 import React, { useCallback, useMemo, useReducer, useState } from "react";
 import ReactDOM from "react-dom";
-import { CachePolicy, Entry, useAssetsInfo } from "../src";
-import { client } from "../src";
-import { DataStatus } from "../src/cache/DataStatus";
-import { useAssetsFullInfo } from "../src/react";
-import { useSubscription } from "../src/react/useSubscription";
-import { ResponsePayload } from "../src/requests/ResponsePayload";
-import { endpoint, API_TOKEN } from "./config";
+import { CachePolicy, Entry } from "../../src";
+import { client } from "../../src";
+import { DataStatus } from "../../src/cache/DataStatus";
+import { useAssetsFullInfo } from "../../src/react";
+import { useSubscription } from "../../src/react/useSubscription";
+import { ResponsePayload } from "../../src/requests/ResponsePayload";
+import { endpoint, API_TOKEN } from "../config";
 import { EntryInfo } from "./EntryInfo";
 import { Helpers } from "./Helpers";
 import { VStack } from "./VStack";
 
 client.configure({ url: endpoint, apiToken: API_TOKEN });
+Object.assign(window, { client });
 
 const ETH = "eth";
 const USDC = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48";
