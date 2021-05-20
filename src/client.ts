@@ -102,7 +102,6 @@ export function subscribe<
 >({
   socketNamespace,
   method = "subscribe",
-  // model,
   body,
   onMessage,
   verifyFn = verify,
@@ -201,7 +200,8 @@ function normalizeOptions<T, Namespace extends string>(
 
 export interface Hooks {
   willSendRequest: <RequestPayload, ScopeName extends string>(
-    request: Request<RequestPayload, ScopeName>
+    request: Request<RequestPayload, ScopeName>,
+    { namespace }: { namespace: string }
   ) => Request<RequestPayload, ScopeName>;
 }
 
@@ -304,10 +304,16 @@ export class BareClient {
     // const key = createKey(options);
     const options = normalizeOptions(convenienceOptions, this.namespaceFactory);
     const requestId = requestToRequestId(options);
-    const body = this.hooks.willSendRequest({
-      ...options.body,
-      payload: { ...options.body.payload, request_id: requestId },
-    });
+
+    const { socketNamespace } = options;
+    const { namespace } = socketNamespace;
+    const body = this.hooks.willSendRequest(
+      {
+        ...options.body,
+        payload: { ...options.body.payload, request_id: requestId },
+      },
+      { namespace }
+    );
 
     const entryStore = this.cache.getOrCreateEntry(requestId);
     const entryState = entryStore.getState();

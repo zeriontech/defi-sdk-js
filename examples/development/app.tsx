@@ -11,7 +11,16 @@ import { EntryInfo } from "./EntryInfo";
 import { Helpers } from "./Helpers";
 import { VStack } from "./VStack";
 
-client.configure({ url: endpoint, apiToken: API_TOKEN });
+client.configure({
+  url: endpoint,
+  apiToken: API_TOKEN,
+  hooks: {
+    willSendRequest: request => {
+      (request.payload as any).lol = "lol";
+      return request;
+    },
+  },
+});
 Object.assign(window, { client });
 
 const ETH = "eth";
@@ -141,6 +150,7 @@ function App() {
   const [show4, toggle4] = useReducer(x => !x, false);
   const [show5, toggle5] = useReducer(x => !x, false);
   const [show6, toggle6] = useReducer(x => !x, false);
+  const [showHelpers, toggleHelpers] = useReducer(x => !x, false);
   const [currency, setCurrency] = useState("usd");
   return (
     <VStack gap={20}>
@@ -189,7 +199,10 @@ function App() {
           </button>
         ))}
       </div>
-      <Helpers currency={currency} />
+      <div>
+        <button onClick={toggleHelpers}>toggle helpers</button>
+        {showHelpers ? <Helpers currency={currency} /> : null}
+      </div>
       <EnabledTest currency={currency} />
     </VStack>
   );
