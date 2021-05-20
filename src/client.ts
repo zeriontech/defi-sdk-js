@@ -199,24 +199,42 @@ function normalizeOptions<T, Namespace extends string>(
   throw new Error("Either socketNamespace or namespace must be provided");
 }
 
-// const knownNamespaces = ["assets", "address"] as const;
-// type KnownNamespaces = typeof knownNamespaces[number];
+export interface Hooks {
+  willSendRequest: <RequestPayload, ScopeName extends string>(
+    request: Request<RequestPayload, ScopeName>
+  ) => Request<RequestPayload, ScopeName>;
+}
 
 interface ConstructorConfig {
   url: string;
   apiToken: string;
+  hooks?: Partial<Hooks>;
 }
+
+const identity = <T>(x: T) => x;
+
+const defaultHooks: Hooks = {
+  willSendRequest: identity,
+};
 
 export class BareClient {
   url: string | null;
   apiToken: string | null;
   cache: RequestCache;
+  hooks: Hooks;
 
   constructor(config: null | ConstructorConfig) {
     this.url = config ? config.url : null;
     this.apiToken = config ? config.apiToken : null;
     this.cache = new RequestCache();
+    this.hooks = this.configureHooks(config);
     this.namespaceFactory = this.namespaceFactory.bind(this);
+  }
+
+  private configureHooks(config: ConstructorConfig | null) {
+    return config
+      ? Object.assign({}, defaultHooks, config.hooks)
+      : defaultHooks;
   }
 
   namespaceFactory<Namespace extends string>(
@@ -230,9 +248,11 @@ export class BareClient {
     return createSocketNamespace(this.url, this.apiToken, namespace);
   }
 
-  configure({ url, apiToken }: ConstructorConfig): this {
+  configure(config: ConstructorConfig): this {
+    const { url, apiToken } = config;
     this.url = url;
     this.apiToken = apiToken;
+    this.hooks = this.configureHooks(config);
     return this;
   }
 
@@ -284,10 +304,11 @@ export class BareClient {
     // const key = createKey(options);
     const options = normalizeOptions(convenienceOptions, this.namespaceFactory);
     const requestId = requestToRequestId(options);
-    const body = {
+    const body = this.hooks.willSendRequest({
       ...options.body,
       payload: { ...options.body.payload, request_id: requestId },
-    };
+    });
+
     const entryStore = this.cache.getOrCreateEntry(requestId);
     const entryState = entryStore.getState();
 
