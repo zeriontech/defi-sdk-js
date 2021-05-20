@@ -8,6 +8,7 @@ export type { MergeStrategy } from "./shared/mergeStrategies";
 export type { SocketNamespace } from "./shared/SocketNamespace";
 export type { CachePolicy } from "./cache/CachePolicy";
 export type { Entry } from "./cache/Entry";
+export type { Hooks } from "./client";
 export { DataStatus } from "./cache/DataStatus";
 
 // domain helpers
