@@ -11,6 +11,8 @@ import { getInitialState } from "../cache/Entry";
 import { hasData } from "../cache/hasData";
 import { DataStatus } from "../cache/DataStatus";
 import { SocketNamespace } from "../shared/SocketNamespace";
+import { shouldReturnCachedData } from "../cache/shouldReturnCachedData";
+import { defaultCachePolicy } from "../cache/defaultCachePolicy";
 
 const emptyEntryIdle = getInitialState<any>();
 const emptyEntryLoading = getInitialState<any>(DataStatus.requested);
@@ -74,6 +76,7 @@ export function useSubscription<
         body: hookOptions.body,
         getId: hookOptions.getId,
         mergeStrategy: hookOptions.mergeStrategy,
+        onAnyMessage: hookOptions.onAnyMessage,
         onData: guardedSetEntry,
       },
       socketNamespace ? { socketNamespace } : null,
@@ -86,6 +89,7 @@ export function useSubscription<
     hookOptions.cachePolicy,
     hookOptions.getId,
     hookOptions.mergeStrategy,
+    hookOptions.onAnyMessage,
     hookOptions.method,
     namespace,
     socketNamespace,
@@ -102,7 +106,10 @@ export function useSubscription<
     () => client.getFromCache(hookOptions),
     [client, hookOptions]
   );
-  if (newEntry !== entry) {
+  if (
+    newEntry !== entry &&
+    shouldReturnCachedData(options.cachePolicy || defaultCachePolicy)
+  ) {
     if (!keepStaleData) {
       guardedSetEntry(newEntry);
     }

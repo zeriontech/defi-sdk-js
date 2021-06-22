@@ -15,18 +15,33 @@ export function EntryInfo<T>({
     return <span>no entry</span>;
   }
   return (
-    <div style={{ border: "1px solid #aaa", padding: 10 }}>
-      {title ? <h4>{title}</h4> : null}
-      <pre style={{ opacity: entry.status === DataStatus.requested ? 0.5 : 1 }}>
+    <div style={{ border: "1px solid #aaa" }}>
+      <div
+        style={{
+          backgroundColor: "#444",
+          color: "white",
+          padding: "4px 8px",
+          display: "flex",
+          gap: 8,
+          alignItems: 'baseline',
+          opacity: entry.status === DataStatus.requested ? 0.5 : 1,
+        }}
+      >
+        {title ? (
+          <h4 style={{ margin: 0, display: "inline-block" }}>{title}</h4>
+        ) : null}
         {Object.keys(entry)
           .filter(key => key !== "data")
           .map(key => (
-            <div key={key}>
+            <code key={key}>
               {key}: {(entry as any)[key]}
-            </div>
+            </code>
+          ))
+          .map((el, index) => (
+            <React.Fragment key={index}>{el}</React.Fragment>
           ))}
-      </pre>
-      {render(entry)}
+      </div>
+      <div style={{ padding: 10 }}>{render(entry)}</div>
     </div>
   );
 }

@@ -38,17 +38,19 @@ export interface BaseOptions<
   body: Request<RequestPayload, ScopeName>;
 }
 
+type MessageHandler<T, ScopeName extends string> = (
+  event: SubscriptionEvent,
+  data: Response<ResponsePayload<T, ScopeName>>
+) => void;
+
 export interface Options<
   T,
   Namespace extends string = any,
   ScopeName extends string = any,
   RequestPayload = any
 > extends BaseOptions<Namespace, ScopeName, RequestPayload> {
-  // onUpdate: UpdaterFn<EntityResponse<T, ScopeName> | null>;
-  onMessage: (
-    event: SubscriptionEvent,
-    data: Response<ResponsePayload<T, ScopeName>>
-  ) => void;
+  onMessage: MessageHandler<T, ScopeName>;
+  onAnyMessage?: MessageHandler<T, ScopeName>;
 }
 
 export type NamespaceOptions<Namespace extends string> =
@@ -84,6 +86,7 @@ export type ConvenienceOptionsCached<
   cachePolicy?: CachePolicy;
   mergeStrategy?: MergeStrategy;
   getId?: (x: any) => string | number;
+  onAnyMessage?: MessageHandler<any, ScopeName>;
 };
 
 export type CachedRequestOptions<
@@ -104,6 +107,7 @@ export function subscribe<
   method = "subscribe",
   body,
   onMessage,
+  onAnyMessage,
   verifyFn = verify,
 }: Options<R, Namespace, ScopeName> & {
   verifyFn?: typeof verify;
@@ -119,6 +123,9 @@ export function subscribe<
     if (verifyFn(body, response)) {
       onMessage(event, response);
     }
+    if (onAnyMessage) {
+      onAnyMessage(event, response);
+    }
   };
 
   const listeners: Array<() => void> = [];
@@ -132,7 +139,6 @@ export function subscribe<
   socket.emit(method, body);
 
   return () => {
-    subsciptionEvents;
     listeners.forEach(l => l());
     socket.emit("unsubscribe", body);
   };
@@ -162,25 +168,6 @@ const requestToRequestId = (
   }
   return memoCache[key];
 };
-
-// export type CachedRequestOptions<
-//   T,
-//   N extends string,
-//   S extends string,
-//   RequestPayload = any
-// > = Omit<ClientSubscribeOptions<T, N, S, RequestPayload>, "onMessage"> & {
-//   cachePolicy?: CachePolicy;
-//   onData: (data: Entry<ResponsePayload<T, S>>) => void;
-//   getId?: (x: any) => string | number;
-// };
-
-// const x: Omit<
-//   ClientSubscribeOptions<number, "assets", "prices">,
-//   "onMessage"
-// > = {
-//   // onData: () => 42,
-//   body: { scope: ["prices"], payload: {} },
-// };
 
 function normalizeOptions<T, Namespace extends string>(
   options: T & NamespaceOptions<Namespace>,
@@ -338,7 +325,6 @@ export class BareClient {
             return;
           }
           const entryState = entryStore.getState();
-          // const newData = payload[scope]
           const merged = mergeStrategy({
             event,
             prevData: entryState.data
@@ -347,9 +333,7 @@ export class BareClient {
             newData: payload[scope] as any,
             getId,
           });
-          // entry.updateWithData
           entryStore.setData({ [scope]: merged });
-          // entry.data = merged;
         },
       });
       entryStore.makeSubscription({ unsubscribe });

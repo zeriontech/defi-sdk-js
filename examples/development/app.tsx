@@ -3,7 +3,7 @@ import ReactDOM from "react-dom";
 import { CachePolicy, Entry } from "../../src";
 import { client } from "../../src";
 import { DataStatus } from "../../src/cache/DataStatus";
-import { useAssetsFullInfo } from "../../src/react";
+import { useAssetsFullInfo, useAssetsPrices } from "../../src/react";
 import { useSubscription } from "../../src/react/useSubscription";
 import { ResponsePayload } from "../../src/requests/ResponsePayload";
 import { endpoint, API_TOKEN } from "../config";
@@ -142,6 +142,37 @@ function EnabledTest({ currency }: { currency: string }) {
   );
 }
 
+function AnyMessageHandler() {
+  const [enabled, toggleEnabled] = useReducer(x => !x, false);
+  const [events, logEvent] = useReducer(
+    (state: any, payload: any) => [...state, payload],
+    []
+  );
+  const { data } = useAssetsPrices({
+    enabled,
+    payload: useMemo(
+      () => ({ currency: "usd", asset_codes: [ETH, USDC, UNI] }),
+      []
+    ),
+    onAnyMessage: useCallback((event, data) => {
+      logEvent([event, data]);
+    }, []),
+  });
+  return (
+    <div>
+      <h3>Any Message handler</h3>
+      <button onClick={toggleEnabled}>toggle enabled</button>
+      Events:{" "}
+      <ul>
+        {events.map(([event], index) => (
+          <li key={index}>{event}</li>
+        ))}
+      </ul>
+      data: {data ? data.prices[ETH].name : null}
+    </div>
+  );
+}
+
 function App() {
   const assetCodes = useMemo(() => [ETH, USDC, UNI], []);
   const [show1, toggle1] = useReducer(x => !x, false);
@@ -204,6 +235,7 @@ function App() {
         {showHelpers ? <Helpers currency={currency} /> : null}
       </div>
       <EnabledTest currency={currency} />
+      <AnyMessageHandler />
     </VStack>
   );
 }
