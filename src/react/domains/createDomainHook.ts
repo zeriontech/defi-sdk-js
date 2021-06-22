@@ -8,7 +8,7 @@ export type Options<
   Payload,
   Namespace extends string,
   ScopeName extends string
-> = Omit<HookOptions<ScopeName, Namespace>, "body" | "socketNamespace"> & {
+> = Omit<HookOptions<Namespace, ScopeName>, "body" | "socketNamespace"> & {
   payload: Payload;
 };
 
