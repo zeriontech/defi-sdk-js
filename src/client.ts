@@ -140,7 +140,10 @@ export function subscribe<
 
   return () => {
     listeners.forEach(l => l());
-    socket.emit("unsubscribe", body);
+
+    if (method === "subscribe") {
+      socket.emit("unsubscribe", body);
+    }
   };
 }
 

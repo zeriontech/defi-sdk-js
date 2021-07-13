@@ -10,6 +10,7 @@ export type { CachePolicy } from "./cache/CachePolicy";
 export type { Entry } from "./cache/Entry";
 export type { Hooks } from "./client";
 export { DataStatus } from "./cache/DataStatus";
+export { createSocketNamespace } from "./socket/createSocketNamespace";
 
 // domain helpers
 export { addressLoans } from "./domains/addressLoans";

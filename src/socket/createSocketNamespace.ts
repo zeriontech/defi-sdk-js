@@ -3,9 +3,6 @@ import type { SocketNamespace } from "../shared/SocketNamespace";
 import { handlePageVisibility } from "./page-visibility";
 import { reconnectionProxy } from "./reconnection-proxy";
 
-// const endpoint = "wss://api-staging.zerion.io";
-// const API_KEY = "Zerion.0JOY6zZTTw6yl5Cvz9sdmXc7d5AhzVMG";
-
 const cached: { [key: string]: SocketNamespace<any> } = {};
 
 export const createSocketNamespace = <T extends string>(
