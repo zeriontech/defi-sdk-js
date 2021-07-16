@@ -8,7 +8,7 @@ export type { MergeStrategy } from "./shared/mergeStrategies";
 export type { SocketNamespace } from "./shared/SocketNamespace";
 export type { CachePolicy } from "./cache/CachePolicy";
 export type { Entry } from "./cache/Entry";
-export type { Hooks } from "./client";
+export type { Hooks, Result } from "./client";
 export { DataStatus } from "./cache/DataStatus";
 export { createSocketNamespace } from "./socket/createSocketNamespace";
 
@@ -18,6 +18,7 @@ export { addressAssets } from "./domains/addressAssets";
 export { assetsFullInfo } from "./domains/assetsFullInfo";
 export { assetsInfo } from "./domains/assetsInfo";
 export { assetsPrices } from "./domains/assetsPrices";
+export type { AddressParams } from "./domains/AddressParams";
 
 // react bindings
 export { useSubscription } from "./react/useSubscription";

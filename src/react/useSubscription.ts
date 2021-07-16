@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { Entry } from "../cache/Entry";
 import type {
   CachedRequestOptions,
   Client,
   ConvenienceOptionsCached,
+  Result,
 } from "../client";
 import { client as defaultClient } from "../client";
-import type { ResponsePayload } from "../requests/ResponsePayload";
 import { getInitialState } from "../cache/Entry";
 import { hasData } from "../cache/hasData";
 import { DataStatus } from "../cache/DataStatus";
@@ -35,14 +34,14 @@ export function useSubscription<
   enabled = true,
   client: currentClient,
   ...hookOptions
-}: HookOptions<Namespace, ScopeName>): Entry<ResponsePayload<T, ScopeName>> {
+}: HookOptions<Namespace, ScopeName>): Result<T, ScopeName> {
   const client = currentClient || defaultClient;
-  const [entry, setEntry] = useState<Entry<
-    ResponsePayload<T, ScopeName>
-  > | null>(client.getFromCache(hookOptions));
+  const [entry, setEntry] = useState<Result<T, ScopeName> | null>(
+    client.getFromCache(hookOptions)
+  );
 
   const guardedSetEntry = useCallback(
-    (entry: null | Entry<ResponsePayload<T, ScopeName>>) => {
+    (entry: null | Result<T, ScopeName>) => {
       setEntry(prevEntry => {
         if (!keepStaleData) {
           return entry;
@@ -102,7 +101,7 @@ export function useSubscription<
    * This should be done synchronously to avoid returning mismatched values
    * https://github.com/facebook/react/blob/93a0c2830534cfbc4e6be3ecc9c9fc34dee3cfaa/packages/use-subscription/src/useSubscription.js#L41-L56
    */
-  const newEntry: null | Entry<ResponsePayload<T, ScopeName>> = useMemo(
+  const newEntry: null | Result<T, ScopeName> = useMemo(
     () => client.getFromCache(hookOptions),
     [client, hookOptions]
   );

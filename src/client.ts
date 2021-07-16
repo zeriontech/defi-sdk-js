@@ -28,6 +28,10 @@ const subsciptionEvents: SubscriptionEvent[] = [
   "removed",
 ];
 
+export type Result<T, ScopeName extends string> = Entry<
+  ResponsePayload<T, ScopeName>
+>;
+
 export interface BaseOptions<
   Namespace extends string = any,
   ScopeName extends string = any,
@@ -95,7 +99,7 @@ export type CachedRequestOptions<
   ScopeName extends string,
   RequestPayload = any
 > = ConvenienceOptionsCached<Namespace, ScopeName, RequestPayload> & {
-  onData: (data: Entry<ResponsePayload<T, ScopeName>>) => void;
+  onData: (data: Result<T, ScopeName>) => void;
 };
 
 export function subscribe<
@@ -265,7 +269,7 @@ export class BareClient {
     RequestPayload = any
   >(
     rawOptions: ConvenienceOptionsCached<Namespace, ScopeName, RequestPayload>
-  ): Entry<ResponsePayload<T, ScopeName>> | null {
+  ): Result<T, ScopeName> | null {
     // rawOptions.onData
     if (!shouldReturnCachedData(rawOptions.cachePolicy || defaultCachePolicy)) {
       return null;
