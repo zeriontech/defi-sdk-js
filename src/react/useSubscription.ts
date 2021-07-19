@@ -123,6 +123,16 @@ export function useSubscription<
     return unsubscribe;
   }, [enabled, options, guardedSetEntry, client]);
 
-  const emptyEntry = enabled ? emptyEntryLoading : emptyEntryIdle;
-  return entry || emptyEntry;
+  const entryHasOrWillHaveRequest =
+    enabled && options.cachePolicy !== "cache-only";
+  const entryHasNotYetMadeRequest = entry
+    ? entry.status === DataStatus.noRequests && !entry.data
+    : true;
+  const emptyEntry = entryHasOrWillHaveRequest
+    ? emptyEntryLoading
+    : emptyEntryIdle;
+  if (!entry || (entryHasOrWillHaveRequest && entryHasNotYetMadeRequest)) {
+    return emptyEntry;
+  }
+  return entry;
 }
