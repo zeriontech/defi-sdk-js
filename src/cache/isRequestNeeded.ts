@@ -4,21 +4,21 @@ import { DataStatus } from "./DataStatus";
 
 export function isRequestNeeded(
   cachePolicy: CachePolicy,
-  entry: Entry<any>,
-  hasActiveSubscription: boolean
+  entry: null | Entry<any>
 ): boolean {
   switch (cachePolicy) {
     case "cache-and-network": {
       return (
+        !entry ||
         entry.status === DataStatus.noRequests ||
-        (entry.status !== DataStatus.requested && !hasActiveSubscription)
+        (entry.status !== DataStatus.requested && !entry.apiSubscription)
       );
     }
     case "cache-first": {
-      return entry.status === DataStatus.noRequests;
+      return !entry || entry.status === DataStatus.noRequests;
     }
     case "network-only": {
-      return entry.status !== DataStatus.requested;
+      return !entry || entry.status !== DataStatus.requested;
     }
     case "cache-only": {
       return false;

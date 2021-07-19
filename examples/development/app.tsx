@@ -40,13 +40,6 @@ function PriceEntry({
 }) {
   return (
     <pre>
-      {Object.keys(entry)
-        .filter(key => key !== "data")
-        .map(key => (
-          <div key={key}>
-            {key}: {(entry as any)[key]}
-          </div>
-        ))}
       {entry.data ? (
         Object.values(entry.data.prices).map(asset => (
           <div key={asset.asset_code}>

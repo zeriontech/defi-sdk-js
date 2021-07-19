@@ -23,7 +23,7 @@ export function EntryInfo<T>({
           padding: "4px 8px",
           display: "flex",
           gap: 8,
-          alignItems: 'baseline',
+          alignItems: "baseline",
           opacity: entry.status === DataStatus.requested ? 0.5 : 1,
         }}
       >
@@ -32,6 +32,7 @@ export function EntryInfo<T>({
         ) : null}
         {Object.keys(entry)
           .filter(key => key !== "data")
+          .filter(key => key !== "apiSubscription")
           .map(key => (
             <code key={key}>
               {key}: {(entry as any)[key]}

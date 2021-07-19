@@ -13,7 +13,8 @@ import { mergeDict, MergeStrategy } from "./shared/mergeStrategies";
 import { verifyByRequestId } from "./requests/verifyByRequestId";
 import { shouldReturnCachedData } from "./cache/shouldReturnCachedData";
 import { defaultCachePolicy } from "./cache/defaultCachePolicy";
-import { RequestCache } from "./cache/Cache";
+import { RequestCache } from "./cache/RequestCache";
+import { DataStatus } from "./cache/DataStatus";
 import { createSocketNamespace } from "./socket/createSocketNamespace";
 import { assetsPrices } from "./domains/assetsPrices";
 import { assetsInfo } from "./domains/assetsInfo";
@@ -309,14 +310,17 @@ export class BareClient {
       { namespace }
     );
 
-    const entryStore = this.cache.getOrCreateEntry(requestId);
-    const entryState = entryStore.getState();
+    const maybeEntryStore = this.cache.get(requestId);
 
     const shouldMakeRequest = isRequestNeeded(
       cachePolicy,
-      entryState,
-      Boolean(entryStore.apiSubscription)
+      maybeEntryStore ? maybeEntryStore.getState() : null
     );
+    const entryStore = this.cache.getOrCreateEntry(
+      requestId,
+      shouldMakeRequest ? { status: DataStatus.requested } : undefined
+    );
+    const entryState = entryStore.getState();
 
     entryStore.addListener(onData);
 

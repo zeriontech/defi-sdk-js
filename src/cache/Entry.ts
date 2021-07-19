@@ -6,24 +6,27 @@ export interface Entry<T> {
   data: T | null;
   status: DataStatus;
   timestamp: number;
+  apiSubscription: null | Subscription;
 }
 
 export const getInitialState = <T>(initialStatus?: DataStatus): Entry<T> => ({
   status: initialStatus ?? DataStatus.noRequests,
   data: null,
   timestamp: 0,
+  apiSubscription: null,
 });
 
 interface Subscription {
   unsubscribe: Unsubscribe;
 }
 
-export class EntryStore<T = any> extends Store<Entry<T>> {
-  apiSubscription: null | Subscription;
+function isIdleStatus(status: DataStatus) {
+  return status === DataStatus.error || status === DataStatus.ok;
+}
 
-  constructor() {
-    super(getInitialState());
-    this.apiSubscription = null;
+export class EntryStore<T = any> extends Store<Entry<T>> {
+  constructor({ status }: Partial<Entry<T>> = {}) {
+    super(getInitialState(status));
   }
 
   setData(data: Entry<T>["data"]): void {
@@ -39,19 +42,18 @@ export class EntryStore<T = any> extends Store<Entry<T>> {
     // NOTE:
     // it's ok to mutate here because no listeners should've been added
     // at this point
-    this.state.status =
-      this.state.status === DataStatus.noRequests
-        ? DataStatus.requested
-        : DataStatus.updating;
-    this.apiSubscription = {
+    this.state.status = isIdleStatus(this.state.status)
+      ? DataStatus.updating
+      : DataStatus.requested;
+    this.state.apiSubscription = {
       unsubscribe,
     };
   }
 
   removeSubscription(): void {
-    if (this.apiSubscription) {
-      this.apiSubscription.unsubscribe();
-      this.apiSubscription = null;
+    if (this.state.apiSubscription) {
+      this.state.apiSubscription.unsubscribe();
+      this.state.apiSubscription = null;
     }
     if (this.state.status === DataStatus.requested) {
       // NOTE:
