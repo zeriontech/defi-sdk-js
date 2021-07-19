@@ -1,6 +1,7 @@
+import type { Entry } from "./Entry";
 import { EntryStore } from "./Entry";
 
-export class Cache {
+export class RequestCache {
   map: Map<string | number, EntryStore>;
 
   constructor() {
@@ -19,9 +20,12 @@ export class Cache {
     this.map.delete(key);
   }
 
-  getOrCreateEntry(key: string | number): EntryStore {
+  getOrCreateEntry(
+    key: string | number,
+    initialParams?: Partial<Entry<any>>
+  ): EntryStore {
     if (!this.get(key)) {
-      this.set(key, new EntryStore());
+      this.set(key, new EntryStore(initialParams));
     }
     const entry = this.get(key);
     if (entry) {
