@@ -92,6 +92,7 @@ export type ConvenienceOptionsCached<
   mergeStrategy?: MergeStrategy;
   getId?: (x: any) => string | number;
   onAnyMessage?: MessageHandler<any, ScopeName>;
+  verifyFn?: typeof verify;
 };
 
 export type CachedRequestOptions<
@@ -291,6 +292,7 @@ export class BareClient {
     // mergingFunction,
     getId,
     mergeStrategy = mergeDict,
+    verifyFn = verifyByRequestId,
     ...convenienceOptions
   }: CachedRequestOptions<T, Namespace, ScopeName>): {
     entryStore: EntryStore<T>;
@@ -328,7 +330,7 @@ export class BareClient {
       const unsubscribe = subscribe({
         ...options,
         body,
-        verifyFn: verifyByRequestId,
+        verifyFn,
         onMessage: (event, data) => {
           const { payload } = data;
           const scope = options.body.scope.find(s => s in payload);
