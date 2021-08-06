@@ -3,6 +3,7 @@ import type { CachedRequestOptions, Client } from "../client";
 import type { EntryStore } from "../cache/Entry";
 import type { Unsubscribe } from "../shared/Unsubscribe";
 import type { ResponsePayload } from "../requests/ResponsePayload";
+import { verify } from "../requests/verify";
 
 export type Options<
   RequestPayload,
@@ -28,12 +29,14 @@ export function createDomainRequest<
   scope,
   getId,
   mergeStrategy,
+  verifyFn,
 }: {
   namespace: Namespace;
   scope: ScopeName;
   getId?: (x: any) => string | number;
   mergeStrategy?: MergeStrategy;
   client?: Client;
+  verifyFn?: typeof verify;
 }) {
   return function domainRequest(
     this: Client | void,
@@ -63,6 +66,7 @@ export function createDomainRequest<
       namespace,
       getId: getId || options.getId,
       mergeStrategy: mergeStrategy || options.mergeStrategy,
+      verifyFn: verifyFn || options.verifyFn,
       body: {
         scope: [scope],
         payload,

@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import type { Entry, MergeStrategy } from "../..";
 import type { ResponsePayload } from "../../requests/ResponsePayload";
+import type { verify } from "../../requests/verify";
 import type { HookOptions } from "../useSubscription";
 import { useSubscription } from "../useSubscription";
 
@@ -22,11 +23,13 @@ export function createDomainHook<
   scope,
   getId,
   mergeStrategy,
+  verifyFn,
 }: {
   namespace: Namespace;
   scope: ScopeName;
   getId?: (x: any) => string | number;
   mergeStrategy?: MergeStrategy;
+  verifyFn?: typeof verify;
 }) {
   return ({
     payload,
@@ -39,6 +42,7 @@ export function createDomainHook<
       namespace,
       getId: getId || options.getId,
       mergeStrategy: mergeStrategy || options.mergeStrategy,
+      verifyFn: verifyFn || options.verifyFn,
       body: useMemo(
         () => ({
           scope: [scope],
