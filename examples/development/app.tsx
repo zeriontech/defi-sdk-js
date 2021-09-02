@@ -1,31 +1,31 @@
-import React, { useCallback, useMemo, useReducer, useState } from "react";
-import ReactDOM from "react-dom";
-import { CachePolicy, Entry } from "../../src";
-import { client } from "../../src";
-import { DataStatus } from "../../src/cache/DataStatus";
-import { useAssetsFullInfo, useAssetsPrices } from "../../src/react";
-import { useSubscription } from "../../src/react/useSubscription";
-import { ResponsePayload } from "../../src/requests/ResponsePayload";
-import { endpoint, API_TOKEN } from "../config";
-import { EntryInfo } from "./EntryInfo";
-import { Helpers } from "./Helpers";
-import { VStack } from "./VStack";
+import React, { useCallback, useMemo, useReducer, useState } from 'react';
+import ReactDOM from 'react-dom';
+import { CachePolicy, Entry } from '../../src';
+import { client } from '../../src';
+import { DataStatus } from '../../src/cache/DataStatus';
+import { useAssetsFullInfo, useAssetsPrices } from '../../src/react';
+import { useSubscription } from '../../src/react/useSubscription';
+import { ResponsePayload } from '../../src/requests/ResponsePayload';
+import { endpoint, API_TOKEN } from '../config';
+import { EntryInfo } from './EntryInfo';
+import { Helpers } from './Helpers';
+import { VStack } from './VStack';
 
 client.configure({
   url: endpoint,
   apiToken: API_TOKEN,
   hooks: {
     willSendRequest: request => {
-      (request.payload as any).lol = "lol";
+      (request.payload as any).lol = 'lol';
       return request;
     },
   },
 });
 Object.assign(window, { client });
 
-const ETH = "eth";
-const USDC = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48";
-const UNI = "0x1f9840a85d5af5bf1d1762f925bdaddc4201f984";
+const ETH = 'eth';
+const USDC = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+const UNI = '0x1f9840a85d5af5bf1d1762f925bdaddc4201f984';
 
 interface Asset {
   asset_code: string;
@@ -36,14 +36,14 @@ interface Asset {
 function PriceEntry({
   entry,
 }: {
-  entry: Entry<ResponsePayload<{ [key: string]: Asset }, "prices">>;
+  entry: Entry<ResponsePayload<{ [key: string]: Asset }, 'prices'>>;
 }) {
   return (
     <pre>
       {entry.data ? (
         Object.values(entry.data.prices).map(asset => (
           <div key={asset.asset_code}>
-            {asset.symbol}price:{" "}
+            {asset.symbol}price:{' '}
             {asset.price ? asset.price.value : <i>no price</i>}
           </div>
         ))
@@ -56,20 +56,20 @@ function PriceEntry({
 
 function Prices({
   assetCodes,
-  cachePolicy = "cache-and-network",
+  cachePolicy = 'cache-and-network',
 }: {
   assetCodes: string[];
   cachePolicy?: CachePolicy;
 }) {
-  const entry = useSubscription<{ [key: string]: Asset }, "assets", "prices">({
-    namespace: "assets",
+  const entry = useSubscription<{ [key: string]: Asset }, 'assets', 'prices'>({
+    namespace: 'assets',
     cachePolicy,
     body: useMemo(
       () => ({
-        scope: ["prices"],
+        scope: ['prices'],
         payload: { asset_codes: assetCodes },
       }),
-      [assetCodes]
+      [assetCodes],
     ),
     getId: useCallback((item: any) => item.asset_code, []),
   });
@@ -82,19 +82,19 @@ function Prices({
 }
 
 function Market() {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState('');
   const { data, status } = useSubscription<
     { [key: string]: Asset },
-    "assets",
-    "info"
+    'assets',
+    'info'
   >({
-    namespace: "assets",
+    namespace: 'assets',
     body: useMemo(
       () => ({
-        scope: ["info"],
+        scope: ['info'],
         payload: { search_query: query, limit: 25 },
       }),
-      [query]
+      [query],
     ),
     getId: useCallback((item: any) => item.asset.asset_code, []),
     keepStaleData: true,
@@ -108,12 +108,12 @@ function Market() {
         value={query}
         onChange={event => setQuery(event.target.value)}
       />
-      {data ? data.info.length : "no data"}
+      {data ? data.info.length : 'no data'}
     </div>
   );
 }
 
-const currencies = ["usd", "eur", "rub"];
+const currencies = ['usd', 'eur', 'rub'];
 
 function EnabledTest({ currency }: { currency: string }) {
   const [enabled, toggleEnabled] = useReducer(x => !x, false);
@@ -122,12 +122,9 @@ function EnabledTest({ currency }: { currency: string }) {
       <div>enabled: {String(enabled)}</div>
       <button onClick={toggleEnabled}>toggle enabled</button>
       <EntryInfo
-        entry={useAssetsFullInfo({
-          enabled,
-          payload: useMemo(() => ({ asset_code: USDC, currency }), [currency]),
-        })}
+        entry={useAssetsFullInfo({ asset_code: USDC, currency }, { enabled })}
         render={entry => {
-          const fullInfo = entry.data && entry.data["full-info"];
+          const fullInfo = entry.data && entry.data['full-info'];
           return fullInfo ? <span>{fullInfo.title}</span> : null;
         }}
       />
@@ -139,23 +136,22 @@ function AnyMessageHandler() {
   const [enabled, toggleEnabled] = useReducer(x => !x, false);
   const [events, logEvent] = useReducer(
     (state: any, payload: any) => [...state, payload],
-    []
+    [],
   );
-  const { data } = useAssetsPrices({
-    enabled,
-    payload: useMemo(
-      () => ({ currency: "usd", asset_codes: [ETH, USDC, UNI] }),
-      []
-    ),
-    onAnyMessage: useCallback((event, data) => {
-      logEvent([event, data]);
-    }, []),
-  });
+  const { data } = useAssetsPrices(
+    { currency: 'usd', asset_codes: [ETH, USDC, UNI] },
+    {
+      enabled,
+      onAnyMessage: useCallback((event, data) => {
+        logEvent([event, data]);
+      }, []),
+    },
+  );
   return (
     <div>
       <h3>Any Message handler</h3>
       <button onClick={toggleEnabled}>toggle enabled</button>
-      Events:{" "}
+      Events:{' '}
       <ul>
         {events.map(([event], index) => (
           <li key={index}>{event}</li>
@@ -175,7 +171,7 @@ function App() {
   const [show5, toggle5] = useReducer(x => !x, false);
   const [show6, toggle6] = useReducer(x => !x, false);
   const [showHelpers, toggleHelpers] = useReducer(x => !x, false);
-  const [currency, setCurrency] = useState("usd");
+  const [currency, setCurrency] = useState('usd');
   return (
     <VStack gap={20}>
       <div>
@@ -237,7 +233,7 @@ function render() {
     <div>
       <App />
     </div>,
-    document.getElementById("root")
+    document.getElementById('root'),
   );
 }
 

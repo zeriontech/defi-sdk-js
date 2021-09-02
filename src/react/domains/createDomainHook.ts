@@ -31,13 +31,13 @@ export function createDomainHook<
 }) {
   return (
     payload: RequestPayload,
-    options: Options<Namespace, ScopeName>
+    options: Options<Namespace, ScopeName> = {}
   ): Entry<ResponsePayload<ResponseData, ScopeName>> => {
     const [memoizedPayload, setMemoizedPayload] = useState(payload);
 
     useEffect(() => {
       setMemoizedPayload(currentPayload =>
-        equal(currentPayload, payload) ? currentPayload : { ...payload }
+        equal(currentPayload, payload) ? currentPayload : payload
       );
     }, [payload]);
 
