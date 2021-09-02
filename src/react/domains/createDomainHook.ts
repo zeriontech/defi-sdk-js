@@ -3,8 +3,8 @@ import equal from "fast-deep-equal";
 import type { Entry, MergeStrategy } from "../..";
 import type { ResponsePayload } from "../../requests/ResponsePayload";
 import type { verify } from "../../requests/verify";
-import type { HookOptions } from "../useSubscription";
 import { useSubscription } from "../useSubscription";
+import type { HookOptions } from "../useSubscription";
 
 export type Options<Namespace extends string, ScopeName extends string> = Omit<
   HookOptions<Namespace, ScopeName>,
