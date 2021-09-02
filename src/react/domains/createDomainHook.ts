@@ -1,17 +1,15 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import equal from "fast-deep-equal";
 import type { Entry, MergeStrategy } from "../..";
 import type { ResponsePayload } from "../../requests/ResponsePayload";
 import type { verify } from "../../requests/verify";
 import type { HookOptions } from "../useSubscription";
 import { useSubscription } from "../useSubscription";
 
-export type Options<
-  Payload,
-  Namespace extends string,
-  ScopeName extends string
-> = Omit<HookOptions<Namespace, ScopeName>, "body" | "socketNamespace"> & {
-  payload: Payload;
-};
+export type Options<Namespace extends string, ScopeName extends string> = Omit<
+  HookOptions<Namespace, ScopeName>,
+  "body" | "socketNamespace"
+>;
 
 export function createDomainHook<
   RequestPayload,
@@ -31,13 +29,19 @@ export function createDomainHook<
   mergeStrategy?: MergeStrategy;
   verifyFn?: typeof verify;
 }) {
-  return ({
-    payload,
-    ...options
-  }: Options<RequestPayload, Namespace, ScopeName>): Entry<
-    ResponsePayload<ResponseData, ScopeName>
-  > =>
-    useSubscription<ResponseData, Namespace, ScopeName>({
+  return (
+    payload: RequestPayload,
+    options: Options<Namespace, ScopeName>
+  ): Entry<ResponsePayload<ResponseData, ScopeName>> => {
+    const [memoizedPayload, setMemoizedPayload] = useState(payload);
+
+    useEffect(() => {
+      setMemoizedPayload(currentPayload =>
+        equal(currentPayload, payload) ? currentPayload : currentPayload
+      );
+    }, [payload]);
+
+    const result = useSubscription<ResponseData, Namespace, ScopeName>({
       ...options,
       namespace,
       getId: getId || options.getId,
@@ -46,9 +50,12 @@ export function createDomainHook<
       body: useMemo(
         () => ({
           scope: [scope],
-          payload,
+          payload: memoizedPayload,
         }),
-        [payload]
+        [memoizedPayload]
       ),
     });
+
+    return result;
+  };
 }
