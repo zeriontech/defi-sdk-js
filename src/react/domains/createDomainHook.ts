@@ -37,7 +37,7 @@ export function createDomainHook<
 
     useEffect(() => {
       setMemoizedPayload(currentPayload =>
-        equal(currentPayload, payload) ? currentPayload : currentPayload
+        equal(currentPayload, payload) ? currentPayload : { ...payload }
       );
     }, [payload]);
 
