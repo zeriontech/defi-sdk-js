@@ -1,14 +1,14 @@
-import React, { useEffect, useMemo } from 'react';
-import { useAssetsFullInfo, useAssetsPrices } from '../../src/react';
-import { useAssetsInfo } from '../../src/react';
-import { useAddressLoans } from '../../src/react';
-import { EntryInfo } from './EntryInfo';
-import { VStack } from './VStack';
-import { TEST_ADDRESS } from '../config';
-import { client, useAddressAssets } from '../../src';
+import React, { useEffect } from "react";
+import { useAssetsFullInfo, useAssetsPrices } from "../../src/react";
+import { useAssetsInfo } from "../../src/react";
+import { useAddressLoans } from "../../src/react";
+import { EntryInfo } from "./EntryInfo";
+import { VStack } from "./VStack";
+import { TEST_ADDRESS } from "../config";
+import { client, useAddressAssets } from "../../src";
 
-const USDC = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
-const UNI = '0x1f9840a85d5af5bf1d1762f925bdaddc4201f984';
+const USDC = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48";
+const UNI = "0x1f9840a85d5af5bf1d1762f925bdaddƒc4201f984";
 
 function ImperativeAssetsPrices({ currency }: { currency: string }) {
   useEffect(() => {
@@ -17,7 +17,7 @@ function ImperativeAssetsPrices({ currency }: { currency: string }) {
       {
         onData: data => {
           // eslint-disable-next-line no-console
-          console.log('data received:', data);
+          console.log("data received:", data);
         },
       },
     );
@@ -43,10 +43,10 @@ export function Helpers({
           const price = entry.data.prices[USDC].price?.value;
           return (
             <div>
-              UDSC:{' '}
+              UDSC:{" "}
               {price != null
-                ? new Intl.NumberFormat('en', {
-                    style: 'currency',
+                ? new Intl.NumberFormat("en", {
+                    style: "currency",
                     currency,
                   }).format(price)
                 : null}
@@ -92,12 +92,12 @@ export function Helpers({
       />
       <EntryInfo
         title="useAssetsFullInfo [404]"
-        entry={useAssetsFullInfo({ currency, asset_code: 'lol' })}
+        entry={useAssetsFullInfo({ currency, asset_code: "lol" })}
         render={entry => {
           if (!entry.data) {
             return null;
           }
-          const entity = entry.data['full-info'];
+          const entity = entry.data["full-info"];
           if (!entity) {
             return <span>Entity not found</span>;
           }
@@ -111,7 +111,7 @@ export function Helpers({
           if (!entry.data) {
             return null;
           }
-          const entity = entry.data['full-info'];
+          const entity = entry.data["full-info"];
           if (!entity) {
             return <span>Entity not found</span>;
           }
