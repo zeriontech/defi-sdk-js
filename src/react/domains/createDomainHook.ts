@@ -33,13 +33,13 @@ export function createDomainHook<
     payload: RequestPayload,
     options: Options<Namespace, ScopeName> = {}
   ): Entry<ResponsePayload<ResponseData, ScopeName>> => {
-    const [memoizedPayload, setMemoizedPayload] = useState(payload);
+    const [currentPayload, setCurrentPayload] = useState(payload);
 
-    useEffect(() => {
-      setMemoizedPayload(currentPayload =>
-        equal(currentPayload, payload) ? currentPayload : payload
-      );
-    }, [payload]);
+    if (currentPayload !== payload) {
+      if (!equal(currentPayload, payload)) {
+        setCurrentPayload(payload);
+      }
+    }
 
     const result = useSubscription<ResponseData, Namespace, ScopeName>({
       ...options,
@@ -50,9 +50,9 @@ export function createDomainHook<
       body: useMemo(
         () => ({
           scope: [scope],
-          payload: memoizedPayload,
+          payload: currentPayload,
         }),
-        [memoizedPayload]
+        [currentPayload]
       ),
     });
 
