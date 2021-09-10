@@ -18,8 +18,8 @@ function ImperativeAssetsPrices({ currency }: { currency: string }) {
         onData: data => {
           // eslint-disable-next-line no-console
           console.log("data received:", data);
-        },
-      },
+        }
+      }
     );
     return unsubscribe;
   }, [currency]);

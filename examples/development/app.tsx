@@ -69,7 +69,7 @@ function Prices({
         scope: ["prices"],
         payload: { asset_codes: assetCodes },
       }),
-      [assetCodes],
+      [assetCodes]
     ),
     getId: useCallback((item: any) => item.asset_code, []),
   });
@@ -94,7 +94,7 @@ function Market() {
         scope: ["info"],
         payload: { search_query: query, limit: 25 },
       }),
-      [query],
+      [query]
     ),
     getId: useCallback((item: any) => item.asset.asset_code, []),
     keepStaleData: true,
@@ -144,8 +144,8 @@ function AnyMessageHandler() {
       enabled,
       onAnyMessage: useCallback((event, data) => {
         logEvent([event, data]);
-      }, []),
-    },
+      }, [])
+    }
   );
   return (
     <div>
@@ -233,7 +233,7 @@ function render() {
     <div>
       <App />
     </div>,
-    document.getElementById("root"),
+    document.getElementById("root")
   );
 }
 
