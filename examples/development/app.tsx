@@ -122,10 +122,7 @@ function EnabledTest({ currency }: { currency: string }) {
       <div>enabled: {String(enabled)}</div>
       <button onClick={toggleEnabled}>toggle enabled</button>
       <EntryInfo
-        entry={useAssetsFullInfo({
-          enabled,
-          payload: useMemo(() => ({ asset_code: USDC, currency }), [currency]),
-        })}
+        entry={useAssetsFullInfo({ asset_code: USDC, currency }, { enabled })}
         render={entry => {
           const fullInfo = entry.data && entry.data["full-info"];
           return fullInfo ? <span>{fullInfo.title}</span> : null;
@@ -139,18 +136,17 @@ function AnyMessageHandler() {
   const [enabled, toggleEnabled] = useReducer(x => !x, false);
   const [events, logEvent] = useReducer(
     (state: any, payload: any) => [...state, payload],
-    []
+    [],
   );
-  const { data } = useAssetsPrices({
-    enabled,
-    payload: useMemo(
-      () => ({ currency: "usd", asset_codes: [ETH, USDC, UNI] }),
-      []
-    ),
-    onAnyMessage: useCallback((event, data) => {
-      logEvent([event, data]);
-    }, []),
-  });
+  const { data } = useAssetsPrices(
+    { currency: "usd", asset_codes: [ETH, USDC, UNI] },
+    {
+      enabled,
+      onAnyMessage: useCallback((event, data) => {
+        logEvent([event, data]);
+      }, [])
+    }
+  );
   return (
     <div>
       <h3>Any Message handler</h3>

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect } from "react";
 import { useAssetsFullInfo, useAssetsPrices } from "../../src/react";
 import { useAssetsInfo } from "../../src/react";
 import { useAddressLoans } from "../../src/react";
@@ -12,13 +12,15 @@ const UNI = "0x1f9840a85d5af5bf1d1762f925bdaddc4201f984";
 
 function ImperativeAssetsPrices({ currency }: { currency: string }) {
   useEffect(() => {
-    const { unsubscribe } = client.assetsPrices({
-      payload: { currency, asset_codes: [UNI, USDC] },
-      onData: data => {
-        // eslint-disable-next-line no-console
-        console.log("data received:", data);
-      },
-    });
+    const { unsubscribe } = client.assetsPrices(
+      { currency, asset_codes: [UNI, USDC] },
+      {
+        onData: data => {
+          // eslint-disable-next-line no-console
+          console.log("data received:", data);
+        }
+      }
+    );
     return unsubscribe;
   }, [currency]);
   return <span>client.assetsPrices()</span>;
@@ -33,15 +35,7 @@ export function Helpers({
     <VStack gap={20}>
       <EntryInfo
         title="useAssetsPrices"
-        entry={useAssetsPrices({
-          payload: useMemo(
-            () => ({
-              currency,
-              asset_codes: [USDC, UNI],
-            }),
-            [currency]
-          ),
-        })}
+        entry={useAssetsPrices({ currency, asset_codes: [USDC, UNI] })}
         render={entry => {
           if (!entry.data) {
             return null;
@@ -62,15 +56,7 @@ export function Helpers({
       />
       <EntryInfo
         title="useAssetsInfo"
-        entry={useAssetsInfo({
-          payload: useMemo(
-            () => ({
-              currency,
-              limit: 5,
-            }),
-            [currency]
-          ),
-        })}
+        entry={useAssetsInfo({ currency, limit: 5 })}
         render={entry => {
           if (!entry.data) {
             return null;
@@ -88,15 +74,7 @@ export function Helpers({
       />
       <EntryInfo
         title="useAddressLoans"
-        entry={useAddressLoans({
-          payload: useMemo(
-            () => ({
-              currency,
-              address: TEST_ADDRESS,
-            }),
-            [currency]
-          ),
-        })}
+        entry={useAddressLoans({ currency, address: TEST_ADDRESS })}
         render={entry => {
           if (!entry.data) {
             return null;
@@ -114,15 +92,7 @@ export function Helpers({
       />
       <EntryInfo
         title="useAssetsFullInfo [404]"
-        entry={useAssetsFullInfo({
-          payload: useMemo(
-            () => ({
-              currency,
-              asset_code: "lol",
-            }),
-            [currency]
-          ),
-        })}
+        entry={useAssetsFullInfo({ currency, asset_code: "lol" })}
         render={entry => {
           if (!entry.data) {
             return null;
@@ -136,15 +106,7 @@ export function Helpers({
       />
       <EntryInfo
         title="useAssetsFullInfo"
-        entry={useAssetsFullInfo({
-          payload: useMemo(
-            () => ({
-              currency,
-              asset_code: UNI,
-            }),
-            [currency]
-          ),
-        })}
+        entry={useAssetsFullInfo({ currency, asset_code: UNI })}
         render={entry => {
           if (!entry.data) {
             return null;
@@ -158,15 +120,7 @@ export function Helpers({
       />
       <EntryInfo
         title="useAddressAssets"
-        entry={useAddressAssets({
-          payload: useMemo(
-            () => ({
-              currency,
-              address: TEST_ADDRESS,
-            }),
-            [currency]
-          ),
-        })}
+        entry={useAddressAssets({ currency, address: TEST_ADDRESS })}
         render={entry => {
           if (!entry.data) {
             return null;

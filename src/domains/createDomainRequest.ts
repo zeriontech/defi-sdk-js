@@ -15,7 +15,6 @@ export type Options<
   "body" | "socketNamespace" | "onData"
 > & {
   client?: Client;
-  payload: RequestPayload;
   onData: (data: ResponsePayload<ResponseData, ScopeName>) => void;
 };
 
@@ -40,8 +39,8 @@ export function createDomainRequest<
 }) {
   return function domainRequest(
     this: Client | void,
+    payload: RequestPayload,
     {
-      payload,
       client: currentClient,
       ...options
     }: Options<RequestPayload, ResponseData, Namespace, ScopeName>
