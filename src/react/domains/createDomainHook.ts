@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import equal from "fast-deep-equal";
 import type { Entry, MergeStrategy } from "../..";
-import type { ResponsePayload } from "../../requests/ResponsePayload";
 import type { verify } from "../../requests/verify";
 import { useSubscription } from "../useSubscription";
 import type { HookOptions } from "../useSubscription";
@@ -32,7 +31,7 @@ export function createDomainHook<
   return (
     payload: RequestPayload,
     options: Options<Namespace, ScopeName> = {}
-  ): Entry<ResponsePayload<ResponseData, ScopeName>> => {
+  ): Entry<ResponseData, ScopeName> => {
     const [currentPayload, setCurrentPayload] = useState(payload);
 
     if (currentPayload !== payload) {

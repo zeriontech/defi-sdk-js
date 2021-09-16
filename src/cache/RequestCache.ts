@@ -22,7 +22,7 @@ export class RequestCache {
 
   getOrCreateEntry(
     key: string | number,
-    initialParams?: Partial<Entry<any>>
+    initialParams?: Partial<Entry<any, any>>
   ): EntryStore {
     if (!this.get(key)) {
       this.set(key, new EntryStore(initialParams));
