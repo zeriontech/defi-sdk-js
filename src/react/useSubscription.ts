@@ -13,8 +13,8 @@ import { SocketNamespace } from "../shared/SocketNamespace";
 import { shouldReturnCachedData } from "../cache/shouldReturnCachedData";
 import { defaultCachePolicy } from "../cache/defaultCachePolicy";
 
-const emptyEntryIdle = getInitialState<any>();
-const emptyEntryLoading = getInitialState<any>(DataStatus.requested);
+const emptyEntryIdle = getInitialState<any, any>();
+const emptyEntryLoading = getInitialState<any, any>(DataStatus.requested);
 
 export type HookOptions<
   Namespace extends string = any,

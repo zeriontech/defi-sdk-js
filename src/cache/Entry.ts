@@ -2,15 +2,19 @@ import { Store } from "../shared/Store";
 import { Unsubscribe } from "../shared/Unsubscribe";
 import { DataStatus } from "./DataStatus";
 
-export interface Entry<T> {
-  data: T | null;
+export interface Entry<T, ScopeName extends string> {
+  data: Record<ScopeName, T> | null;
+  value: T | null;
   status: DataStatus;
   timestamp: number;
   apiSubscription: null | Subscription;
 }
 
-export const getInitialState = <T>(initialStatus?: DataStatus): Entry<T> => ({
+export const getInitialState = <T, ScopeName extends string>(
+  initialStatus?: DataStatus
+): Entry<T, ScopeName> => ({
   status: initialStatus ?? DataStatus.noRequests,
+  value: null,
   data: null,
   timestamp: 0,
   apiSubscription: null,
@@ -24,15 +28,19 @@ function isIdleStatus(status: DataStatus) {
   return status === DataStatus.error || status === DataStatus.ok;
 }
 
-export class EntryStore<T = any> extends Store<Entry<T>> {
-  constructor({ status }: Partial<Entry<T>> = {}) {
+export class EntryStore<T = any, ScopeName extends string = any> extends Store<
+  Entry<T, ScopeName>
+> {
+  constructor({ status }: Partial<Entry<T, ScopeName>> = {}) {
     super(getInitialState(status));
   }
 
-  setData(data: Entry<T>["data"]): void {
+  setData(scopeName: ScopeName, value: T | null): void {
+    const data = { [scopeName]: value } as Record<ScopeName, T>;
     this.setState(state => ({
       ...state,
       data,
+      value,
       timestamp: Date.now(),
       status: DataStatus.ok,
     }));
@@ -62,7 +70,7 @@ export class EntryStore<T = any> extends Store<Entry<T>> {
     }
   }
 
-  removeListener(cb: (state: Entry<T>) => void): void {
+  removeListener(cb: (state: Entry<T, ScopeName>) => void): void {
     super.removeListener(cb);
 
     if (this.listeners.size === 0) {

@@ -29,9 +29,7 @@ const subsciptionEvents: SubscriptionEvent[] = [
   "removed",
 ];
 
-export type Result<T, ScopeName extends string> = Entry<
-  ResponsePayload<T, ScopeName>
->;
+export type Result<T, ScopeName extends string> = Entry<T, ScopeName>;
 
 export interface BaseOptions<
   Namespace extends string = any,
@@ -346,7 +344,7 @@ export class BareClient {
             newData: payload[scope] as any,
             getId,
           });
-          entryStore.setData({ [scope]: merged });
+          entryStore.setData(scope, merged);
         },
       });
       entryStore.makeSubscription({ unsubscribe });

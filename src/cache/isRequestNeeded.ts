@@ -4,7 +4,7 @@ import { DataStatus } from "./DataStatus";
 
 export function isRequestNeeded(
   cachePolicy: CachePolicy,
-  entry: null | Entry<any>
+  entry: null | Entry<any, any>
 ): boolean {
   switch (cachePolicy) {
     case "cache-and-network": {
