@@ -3,6 +3,7 @@ export {
   mergeDict,
   mergeList,
   mergeListReverseChronological,
+  mergeSingleEntity,
 } from "./shared/mergeStrategies";
 export type { MergeStrategy } from "./shared/mergeStrategies";
 export type { SocketNamespace } from "./shared/SocketNamespace";
