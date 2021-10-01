@@ -14,4 +14,5 @@ export interface Asset {
   type: string | null;
   is_displayable: boolean;
   is_verified: boolean;
+  addresses?: { [key: string]: string };
 }
