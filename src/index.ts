@@ -22,13 +22,7 @@ export { assetsPrices } from "./domains/assetsPrices";
 export type { AddressParams } from "./domains/AddressParams";
 
 // react bindings
-export { useSubscription } from "./react/useSubscription";
-export { useAddressAssets } from "./react/domains/useAddressAssets";
-export { useAddressLoans } from "./react/domains/useAddressLoans";
-export { useAssetsFullInfo } from "./react/domains/useAssetsFullInfo";
-export { useAssetsInfo } from "./react/domains/useAssetsInfo";
-export { useAssetsPrices } from "./react/domains/useAssetsPrices";
-export type { HookOptions } from "./react/useSubscription";
+export * from "./react";
 
 // entities
 export * from "./entities";
