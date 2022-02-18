@@ -16,4 +16,7 @@ export interface Asset {
   is_displayable: boolean;
   is_verified: boolean;
   addresses?: { [key: string]: string };
+  implementations?: {
+    [key: string]: { address: string | null; decimals: number };
+  };
 }
