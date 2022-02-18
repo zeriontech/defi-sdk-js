@@ -5,6 +5,7 @@ interface Price {
 }
 
 export interface Asset {
+  id: string;
   asset_code: string;
   decimals: number;
   icon_url: string | null;
