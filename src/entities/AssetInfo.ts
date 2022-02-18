@@ -15,6 +15,7 @@ export interface PriceStats {
 }
 
 export interface RelativeChanges {
+  "1h": number | null;
   "1d": number | null;
   "1m": number | null;
   "1w": number | null;
