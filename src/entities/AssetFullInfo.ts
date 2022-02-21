@@ -1,12 +1,5 @@
-import { Asset } from "./Asset";
-
-interface RelativeChanges {
-  "1d": number | null;
-  "1m": number | null;
-  "1w": number | null;
-  "1y": number | null;
-  "3m": number | null;
-}
+import type { Asset } from "./Asset";
+import type { RelativeChanges } from "./AssetInfo";
 
 interface GradientColor {
   start: string;
