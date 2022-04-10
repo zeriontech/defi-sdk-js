@@ -1,23 +1,19 @@
-import { AddressParams } from "../../domains/AddressParams";
 import { createDomainHook } from "./createDomainHook";
-
-type Payload = AddressParams & {
-  currency: string;
-  assets?: string[];
-};
-interface Response {
-  aggregation_in_progress: boolean;
-  positions: any; // AddressPosition[];
-}
-const namespace = "address";
-const scope = "positions";
+import {
+  RequestPayload,
+  ResponseData,
+  namespace,
+  scope,
+  mergeStrategy,
+} from "../../domains/addressPositions";
 
 export const useAddressPositions = createDomainHook<
-  Payload,
-  Response,
+  RequestPayload,
+  ResponseData,
   typeof namespace,
   typeof scope
 >({
   namespace,
   scope,
+  mergeStrategy,
 });
