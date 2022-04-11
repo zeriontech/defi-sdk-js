@@ -1,8 +1,8 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import ReactDOM from "react-dom";
-import { client, DataStatus, useAddressAssets } from "defi-sdk";
+import { client, DataStatus, useAddressPositions } from "defi-sdk";
 import { endpoint, API_TOKEN, TEST_ADDRESS } from "../config";
-import { AddressAsset } from "./components/AddressAsset";
+import { AddressPosition } from "./components/AddressPosition";
 
 client.configure({ url: endpoint, apiToken: API_TOKEN });
 
@@ -13,8 +13,9 @@ function AddressAssets({
   address: string;
   currency: string;
 }) {
-  const { data, status } = useAddressAssets({
-    payload: useMemo(() => ({ address, currency }), [address, currency]),
+  const { data, status, value } = useAddressPositions({
+    address,
+    currency,
   });
   if (status === DataStatus.requested) {
     return <span>Loading...</span>;
@@ -24,10 +25,10 @@ function AddressAssets({
   }
   return (
     <>
-      {Object.values(data.assets).map(addressAsset => (
-        <AddressAsset
-          key={addressAsset.asset.asset_code}
-          addressAsset={addressAsset}
+      {value.positions.map(addressPosition => (
+        <AddressPosition
+          key={addressPosition.id}
+          addressPosition={addressPosition}
           currency={currency}
         />
       ))}

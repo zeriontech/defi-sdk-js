@@ -1,11 +1,16 @@
 import React, { useEffect } from "react";
-import { useAssetsFullInfo, useAssetsPrices } from "../../src/react";
+import {
+  useAddressPositions,
+  useAssetsFullInfo,
+  useAssetsPrices,
+} from "../../src/react";
 import { useAssetsInfo } from "../../src/react";
 import { useAddressLoans } from "../../src/react";
 import { EntryInfo } from "./EntryInfo";
 import { VStack } from "./VStack";
 import { TEST_ADDRESS } from "../config";
-import { client, useAddressAssets } from "../../src";
+import { client, Entry } from "../../src";
+import { ResponseData as AddressPositionsResponse } from "../../src/domains/addressPositions";
 
 const USDC = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48";
 const UNI = "0x1f9840a85d5af5bf1d1762f925bdaddc4201f984";
@@ -18,7 +23,7 @@ function ImperativeAssetsPrices({ currency }: { currency: string }) {
         onData: data => {
           // eslint-disable-next-line no-console
           console.log("data received:", data);
-        }
+        },
       }
     );
     return unsubscribe;
@@ -119,23 +124,21 @@ export function Helpers({
         }}
       />
       <EntryInfo
-        title="useAddressAssets"
-        entry={useAddressAssets({ currency, address: TEST_ADDRESS })}
-        render={entry => {
+        title="useAddressPositions"
+        entry={useAddressPositions({ currency, address: TEST_ADDRESS })}
+        render={(entry: Entry<AddressPositionsResponse, "positions">) => {
           if (!entry.data) {
             return null;
           }
-          const { assets } = entry.data;
-          if (!assets) {
+          const { positions } = entry.data;
+          if (!positions) {
             return <span>Entity not found</span>;
           }
-          return Object.values(assets)
-            .slice(0, 5)
-            .map(addressAsset => (
-              <div key={addressAsset.asset.asset_code}>
-                {addressAsset.asset.name} {addressAsset.quantity}
-              </div>
-            ));
+          return positions.positions.slice(0, 5).map(addressAsset => (
+            <div key={addressAsset.asset.asset_code}>
+              {addressAsset.asset.name} {addressAsset.quantity}
+            </div>
+          ));
         }}
       />
       <ImperativeAssetsPrices currency={currency} />

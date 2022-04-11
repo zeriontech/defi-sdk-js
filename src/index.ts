@@ -16,9 +16,12 @@ export { createSocketNamespace } from "./socket/createSocketNamespace";
 // domain helpers
 export { addressLoans } from "./domains/addressLoans";
 export { addressAssets } from "./domains/addressAssets";
+export { addressPositions } from "./domains/addressPositions";
+export { addressCharts } from "./domains/addressCharts";
 export { assetsFullInfo } from "./domains/assetsFullInfo";
 export { assetsInfo } from "./domains/assetsInfo";
 export { assetsPrices } from "./domains/assetsPrices";
+export { assetsCharts } from "./domains/assetsCharts";
 export type { AddressParams } from "./domains/AddressParams";
 
 // react bindings

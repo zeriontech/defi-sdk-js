@@ -41,7 +41,8 @@ type RDBTransactionType =
   | "repay"
   | "stake"
   | "unstake"
-  | "claim";
+  | "claim"
+  | "mint";
 
 export interface AddressTransaction {
   id: string;

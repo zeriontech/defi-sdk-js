@@ -3,9 +3,9 @@ import ReactDOM from "react-dom";
 import { CachePolicy, Entry } from "../../src";
 import { client } from "../../src";
 import { DataStatus } from "../../src/cache/DataStatus";
+import { ResponseData as AssetsPricesResponse } from "../../src/domains/assetsPrices";
 import { useAssetsFullInfo, useAssetsPrices } from "../../src/react";
 import { useSubscription } from "../../src/react/useSubscription";
-import { ResponsePayload } from "../../src/requests/ResponsePayload";
 import { endpoint, API_TOKEN } from "../config";
 import { EntryInfo } from "./EntryInfo";
 import { Helpers } from "./Helpers";
@@ -36,7 +36,7 @@ interface Asset {
 function PriceEntry({
   entry,
 }: {
-  entry: Entry<ResponsePayload<{ [key: string]: Asset }, "prices">>;
+  entry: Entry<AssetsPricesResponse, "prices">;
 }) {
   return (
     <pre>
@@ -61,18 +61,10 @@ function Prices({
   assetCodes: string[];
   cachePolicy?: CachePolicy;
 }) {
-  const entry = useSubscription<{ [key: string]: Asset }, "assets", "prices">({
-    namespace: "assets",
-    cachePolicy,
-    body: useMemo(
-      () => ({
-        scope: ["prices"],
-        payload: { asset_codes: assetCodes },
-      }),
-      [assetCodes]
-    ),
-    getId: useCallback((item: any) => item.asset_code, []),
-  });
+  const entry = useAssetsPrices(
+    { asset_codes: assetCodes, currency: "usd" },
+    { cachePolicy }
+  );
   return (
     <>
       <p>cachePolicy: {cachePolicy}</p>
@@ -136,7 +128,7 @@ function AnyMessageHandler() {
   const [enabled, toggleEnabled] = useReducer(x => !x, false);
   const [events, logEvent] = useReducer(
     (state: any, payload: any) => [...state, payload],
-    [],
+    []
   );
   const { data } = useAssetsPrices(
     { currency: "usd", asset_codes: [ETH, USDC, UNI] },
@@ -144,7 +136,7 @@ function AnyMessageHandler() {
       enabled,
       onAnyMessage: useCallback((event, data) => {
         logEvent([event, data]);
-      }, [])
+      }, []),
     }
   );
   return (
