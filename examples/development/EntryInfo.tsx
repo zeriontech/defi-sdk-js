@@ -7,9 +7,9 @@ export function EntryInfo<T>({
   title,
   render,
 }: {
-  entry: Entry<T>;
+  entry: Entry<T, any>;
   title?: string;
-  render: (entry: Entry<T>) => React.ReactNode;
+  render: (entry: Entry<T, any>) => React.ReactNode;
 }): React.ReactElement {
   if (!entry) {
     return <span>no entry</span>;
@@ -33,6 +33,7 @@ export function EntryInfo<T>({
         {Object.keys(entry)
           .filter(key => key !== "data")
           .filter(key => key !== "apiSubscription")
+          .filter(key => key !== "value")
           .map(key => (
             <code key={key}>
               {key}: {(entry as any)[key]}

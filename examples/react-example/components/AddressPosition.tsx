@@ -1,14 +1,14 @@
 import React from "react";
-import type { AddressAsset as TAddressAsset } from "../../../src/entities/AddressAsset";
+import type { AddressPosition as TAddressPosition } from "defi-sdk";
 
-export function AddressAsset({
-  addressAsset,
+export function AddressPosition({
+  addressPosition,
   currency,
 }: {
-  addressAsset: TAddressAsset;
+  addressPosition: TAddressPosition;
   currency: string;
 }): React.ReactElement {
-  const { quantity, asset } = addressAsset;
+  const { quantity, asset } = addressPosition;
   const commonQuantity = (
     Number(quantity) *
     10 ** (0 - asset.decimals)
