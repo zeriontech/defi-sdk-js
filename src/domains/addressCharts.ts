@@ -1,19 +1,20 @@
-import { AddressPosition } from "../entities/AddressPosition";
+import { ChartType } from "../entities/Chart";
 import { AddressParams } from "./AddressParams";
 import { createDomainRequest } from "./createDomainRequest";
 
 export type RequestPayload = AddressParams & {
   currency: string;
-  assets?: string[];
+  charts_type: ChartType;
+  charts_max_assets: number; // how many assets to extract from "others"
+  charts_min_percentage: number;
 };
 export interface ResponseData {
-  aggregation_in_progress: boolean;
-  positions: AddressPosition[];
+  others: number[][];
 }
 export const namespace = "address";
-export const scope = "positions";
+export const scope = "charts";
 
-export const addressPositions = createDomainRequest<
+export const addressCharts = createDomainRequest<
   RequestPayload,
   ResponseData,
   typeof namespace,

@@ -4,9 +4,9 @@ import {
   ResponseData,
   namespace,
   scope,
-} from "../../domains/addressPositions";
+} from "../../domains/addressCharts";
 
-export const useAddressPositions = createDomainHook<
+export const useAddressCharts = createDomainHook<
   RequestPayload,
   ResponseData,
   typeof namespace,
