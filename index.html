@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DefiSDK Usage</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/normalize.css@7.0.0/normalize.css"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="icon" href="https://app.zerion.io/favicon.png" />
+    <script src="https://unpkg.com/socket.io-client@2.4.0/dist/socket.io.js"></script>
+    <script src="https://unpkg.com/defi-sdk@latest/lib/defi-sdk.umd.js"></script>
+  </head>
+  <body>
+    <h2>Hello, defi-sdk!</h2>
+    <div id="root"></div>
+
+    <script>
+      const { client } = defiSdk;
+      const url = "wss://api-staging.zerion.io";
+      const apiToken = "Zerion.0JOY6zZTTw6yl5Cvz9sdmXc7d5AhzVMG";
+      const address = "0x42b9df65b219b3dd36ff330a4dd8f327a6ada990";
+
+      client.configure({
+        url,
+        apiToken,
+      });
+
+      document.getElementById("root").innerHTML = "<span>Loading...</span>";
+      client.addressPositions(
+        { address },
+        {
+          onData: data => {
+            console.log(data.positions);
+            document.getElementById("root").innerHTML = `
+           <h4>Assets for ${address}</h4>
+           ${Object.values(data.positions.positions)
+             .map(addressPosition => {
+               const { quantity, asset } = addressPosition;
+               const commonQuantity = (
+                 Number(quantity) *
+                 10 ** (0 - asset.decimals)
+               ).toFixed(2);
+               const price = asset.price
+                 ? `${new Intl.NumberFormat("en", {
+                     style: "currency",
+                     currency: "usd",
+                   }).format(asset.price.value)}`
+                 : "—";
+               return `
+                 <div class="stack">
+                   <img class="token-icon" src="${asset.icon_url || ""}" />
+                   <div>
+                     <div>${asset.name}</div>
+                     <div style="color: #999">${commonQuantity} ${
+                 asset.symbol
+               } · ${price}</div>
+                   </div>
+                 </div>
+           `;
+             })
+             .join("")}
+          `;
+          },
+        }
+      );
+    </script>
+  </body>
+</html>
