@@ -13,22 +13,24 @@ client.configure({
 
 const currency = "usd";
 
-client.addressAssets({
-  payload: {
+client.addressPositions(
+  {
     address,
     currency,
   },
-  onData: data => {
-    const assetsToDisplay = Object.values(data.assets)
-      .map(addressAsset => createViewModel(addressAsset))
-      .filter(asset => asset.value != null && asset.value > 1)
-      .sort((a, b) => Number(b.value) - Number(a.value))
-      .map(asset => ({
-        ...asset,
-        price: formatCurrency(asset.price, currency),
-        value: formatNumber(asset.value),
-      }));
+  {
+    onData: data => {
+      const assetsToDisplay = Object.values(data.positions.positions)
+        .map(addressAsset => createViewModel(addressAsset))
+        .filter(asset => asset.value != null && asset.value > 1)
+        .sort((a, b) => Number(b.value) - Number(a.value))
+        .map(asset => ({
+          ...asset,
+          price: formatCurrency(asset.price, currency),
+          value: formatNumber(asset.value),
+        }));
 
-    console.table(assetsToDisplay); // eslint-disable-line no-console
-  },
-});
+      console.table(assetsToDisplay); // eslint-disable-line no-console
+    },
+  }
+);

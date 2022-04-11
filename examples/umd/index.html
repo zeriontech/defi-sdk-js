@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="/styles.css" />
     <link rel="icon" href="https://app.zerion.io/favicon.png" />
     <script src="https://unpkg.com/socket.io-client@2.4.0/dist/socket.io.js"></script>
-    <script src="https://unpkg.com/defi-sdk@0.1.0-alpha.11/lib/defi-sdk.umd.js"></script>
+    <script src="https://unpkg.com/defi-sdk@latest/lib/defi-sdk.umd.js"></script>
   </head>
   <body>
     <h2>Hello, defi-sdk!</h2>
@@ -29,15 +29,16 @@
       });
 
       document.getElementById("root").innerHTML = "<span>Loading...</span>";
-      client.addressAssets({
-        payload: { address },
-        onData: data => {
-          console.log(data);
-          document.getElementById("root").innerHTML = `
+      client.addressPositions(
+        { address },
+        {
+          onData: data => {
+            console.log(data.positions);
+            document.getElementById("root").innerHTML = `
            <h4>Assets for ${address}</h4>
-           ${Object.values(data.assets)
-             .map(addressAsset => {
-               const { quantity, asset } = addressAsset;
+           ${Object.values(data.positions.positions)
+             .map(addressPosition => {
+               const { quantity, asset } = addressPosition;
                const commonQuantity = (
                  Number(quantity) *
                  10 ** (0 - asset.decimals)
@@ -62,8 +63,9 @@
              })
              .join("")}
           `;
-        },
-      });
+          },
+        }
+      );
     </script>
   </body>
 </html>
