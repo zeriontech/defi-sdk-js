@@ -20,6 +20,9 @@ import { assetsPrices } from "./domains/assetsPrices";
 import { assetsInfo } from "./domains/assetsInfo";
 import { addressLoans } from "./domains/addressLoans";
 import { addressAssets } from "./domains/addressAssets";
+import { addressPositions } from "./domains/addressPositions";
+import { addressCharts } from "./domains/addressCharts";
+import { assetsCharts } from "./domains/assetsCharts";
 import { assetsFullInfo } from "./domains/assetsFullInfo";
 
 const subsciptionEvents: SubscriptionEvent[] = [
@@ -363,6 +366,9 @@ export class BareClient {
 export class Client extends BareClient {
   addressAssets = addressAssets;
   addressLoans = addressLoans;
+  addressPositions = addressPositions;
+  addressCharts = addressCharts;
+  assetsCharts = assetsCharts;
   assetsPrices = assetsPrices;
   assetsFullInfo = assetsFullInfo;
   assetsInfo = assetsInfo;
