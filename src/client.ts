@@ -330,7 +330,7 @@ export class BareClient {
         body,
         verifyFn,
         onMessage: (event, data) => {
-          const { payload } = data;
+          const { payload, meta } = data;
           const scope = options.body.scope.find(s => s in payload);
           if (!scope) {
             return;
@@ -344,7 +344,7 @@ export class BareClient {
             newData: payload[scope] as any,
             getId,
           });
-          entryStore.setData(scope, merged);
+          entryStore.setData(scope, merged, meta);
         },
       });
       entryStore.makeSubscription({ unsubscribe });

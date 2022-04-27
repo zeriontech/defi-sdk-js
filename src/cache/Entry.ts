@@ -7,6 +7,7 @@ export interface Entry<T, ScopeName extends string> {
   value: T | null;
   status: DataStatus;
   timestamp: number;
+  meta: Record<string, any>;
   apiSubscription: null | Subscription;
 }
 
@@ -17,6 +18,7 @@ export const getInitialState = <T, ScopeName extends string>(
   value: null,
   data: null,
   timestamp: 0,
+  meta: {},
   apiSubscription: null,
 });
 
@@ -35,11 +37,16 @@ export class EntryStore<T = any, ScopeName extends string = any> extends Store<
     super(getInitialState(status));
   }
 
-  setData(scopeName: ScopeName, value: T | null): void {
+  setData(
+    scopeName: ScopeName,
+    value: T | null,
+    meta: Record<string, any> = {}
+  ): void {
     const data = { [scopeName]: value } as Record<ScopeName, T>;
     this.setState(state => ({
       ...state,
       data,
+      meta,
       value,
       timestamp: Date.now(),
       status: DataStatus.ok,
