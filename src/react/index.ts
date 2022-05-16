@@ -10,3 +10,4 @@ export { useAssetsFullInfo } from "./domains/useAssetsFullInfo";
 export { useAddressCharts } from "./domains/useAddressCharts";
 export { useAddressPositions } from "./domains/useAddressPositions";
 export { useAssetsCharts } from "./domains/useAssetsCharts";
+export { useAddressPortfolio } from "./domains/useAddressPortfolio";
