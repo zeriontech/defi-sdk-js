@@ -18,3 +18,5 @@ export interface NFTInfo {
   attributes: NFTAttribute[];
   relevant_urls: null | Resource[];
 }
+
+export type NFTValuePreferenceType = "floor_price" | "last_price";

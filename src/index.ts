@@ -17,6 +17,7 @@ export { createSocketNamespace } from "./socket/createSocketNamespace";
 export { addressLoans } from "./domains/addressLoans";
 export { addressAssets } from "./domains/addressAssets";
 export { addressPositions } from "./domains/addressPositions";
+export { addressPortfolio } from "./domains/addressPortfolio";
 export { addressCharts } from "./domains/addressCharts";
 export { assetsFullInfo } from "./domains/assetsFullInfo";
 export { assetsInfo } from "./domains/assetsInfo";
