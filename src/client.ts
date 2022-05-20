@@ -25,6 +25,7 @@ import { addressCharts } from "./domains/addressCharts";
 import { assetsCharts } from "./domains/assetsCharts";
 import { assetsFullInfo } from "./domains/assetsFullInfo";
 import { addressPortfolio } from "./domains/addressPortfolio";
+import { PersistentCache } from "./cache/PersistentCache";
 
 const subsciptionEvents: SubscriptionEvent[] = [
   "received",
@@ -170,10 +171,7 @@ const getRequetsId = () => ++reqId;
 
 const memoCache: { [key: string]: number } = {};
 
-const requestToRequestId = (
-  request: Pick<Options<any, any, any>, "socketNamespace" | "body">
-) => {
-  const key = createKey(request);
+const keyToRequestId = (key: string) => {
   if (!memoCache[key]) {
     memoCache[key] = getRequetsId();
   }
@@ -207,6 +205,8 @@ interface ConstructorConfig {
   url: string;
   apiToken: string;
   hooks?: Partial<Hooks>;
+  cache?: RequestCache<EntryStore>;
+  getCacheKey?: (params: { key: string; requestId: number }) => string | number;
 }
 
 const identity = <T>(x: T) => x;
@@ -215,16 +215,34 @@ const defaultHooks: Hooks = {
   willSendRequest: identity,
 };
 
+function getOrCreateEntry(
+  cache: RequestCache<EntryStore>,
+  key: string | number,
+  cachePolicy: CachePolicy,
+  status?: Entry<any, any>["status"]
+) {
+  if (!cache.get(key, cachePolicy)) {
+    cache.set(key, EntryStore.fromStatus(status));
+  }
+  const entry = cache.get(key, cachePolicy);
+  if (entry) {
+    return entry;
+  }
+  throw new Error("Unexpected internal error: newly created entry not found");
+}
+
 export class BareClient {
   url: string | null;
   apiToken: string | null;
-  cache: RequestCache;
+  cache: RequestCache<EntryStore>;
   hooks: Hooks;
+  private customGetCacheKey?: ConstructorConfig["getCacheKey"];
 
   constructor(config: null | ConstructorConfig) {
     this.url = config ? config.url : null;
     this.apiToken = config ? config.apiToken : null;
-    this.cache = new RequestCache();
+    this.cache = config?.cache || new RequestCache();
+    this.customGetCacheKey = config?.getCacheKey;
     this.hooks = this.configureHooks(config);
     this.namespaceFactory = this.namespaceFactory.bind(this);
   }
@@ -251,6 +269,8 @@ export class BareClient {
     this.url = url;
     this.apiToken = apiToken;
     this.hooks = this.configureHooks(config);
+    this.cache = config.cache || this.cache;
+    this.customGetCacheKey = config.getCacheKey;
     return this;
   }
 
@@ -279,9 +299,27 @@ export class BareClient {
       return null;
     }
     const options = normalizeOptions(rawOptions, this.namespaceFactory);
-    const requestId = requestToRequestId(options);
-    const entryStore = this.cache.get(requestId);
+    const key = createKey(options);
+    // const requestId = requestToRequestId(options);
+    const requestId = keyToRequestId(key);
+    const cacheKey = this.getCacheKey(key, requestId);
+    // let cacheKey: string | number;
+    const entryStore = this.cache.get(
+      cacheKey,
+      options.cachePolicy || defaultCachePolicy
+    );
     return entryStore ? entryStore.getState() : null;
+  }
+
+  getCacheKey(key: string, requestId: number): string | number {
+    if (this.customGetCacheKey) {
+      return this.customGetCacheKey({ key, requestId });
+    }
+    if (this.cache instanceof PersistentCache) {
+      return key;
+    } else {
+      return requestId;
+    }
   }
 
   cachedSubscribe<
@@ -300,9 +338,11 @@ export class BareClient {
     entryStore: EntryStore<T>;
     unsubscribe: Unsubscribe;
   } {
-    // const key = createKey(options);
     const options = normalizeOptions(convenienceOptions, this.namespaceFactory);
-    const requestId = requestToRequestId(options);
+    const key = createKey(options);
+    // const requestId = requestToRequestId(options);
+    const requestId = keyToRequestId(key);
+    const cacheKey = this.getCacheKey(key, requestId);
 
     const { socketNamespace } = options;
     const { namespace } = socketNamespace;
@@ -314,19 +354,21 @@ export class BareClient {
       { namespace }
     );
 
-    const maybeEntryStore = this.cache.get(requestId);
+    const maybeEntryStore = this.cache.get(cacheKey, cachePolicy);
 
     const shouldMakeRequest = isRequestNeeded(
       cachePolicy,
       maybeEntryStore ? maybeEntryStore.getState() : null
     );
-    const entryStore = this.cache.getOrCreateEntry(
-      requestId,
-      shouldMakeRequest ? { status: DataStatus.requested } : undefined
+    const entryStore = getOrCreateEntry(
+      this.cache,
+      cacheKey,
+      cachePolicy,
+      shouldMakeRequest ? DataStatus.requested : undefined
     );
     const entryState = entryStore.getState();
 
-    entryStore.addListener(onData);
+    const unlisten = entryStore.addClientListener(onData);
 
     if (shouldMakeRequest) {
       const unsubscribe = subscribe({
@@ -359,7 +401,7 @@ export class BareClient {
     }
     return {
       entryStore,
-      unsubscribe: () => entryStore.removeListener(onData),
+      unsubscribe: () => unlisten(),
     };
   }
 }
