@@ -1,4 +1,4 @@
-import { Store } from "../shared/Store";
+import { Store } from "store-unit";
 import { Unsubscribe } from "../shared/Unsubscribe";
 import { DataStatus } from "./DataStatus";
 
@@ -8,7 +8,8 @@ export interface Entry<T, ScopeName extends string> {
   status: DataStatus;
   timestamp: number;
   meta: Record<string, any>;
-  apiSubscription: null | Subscription;
+  hasSubscribers: boolean;
+  isStale: boolean;
 }
 
 export const getInitialState = <T, ScopeName extends string>(
@@ -19,7 +20,8 @@ export const getInitialState = <T, ScopeName extends string>(
   data: null,
   timestamp: 0,
   meta: {},
-  apiSubscription: null,
+  hasSubscribers: false,
+  isStale: false,
 });
 
 interface Subscription {
@@ -33,8 +35,17 @@ function isIdleStatus(status: DataStatus) {
 export class EntryStore<T = any, ScopeName extends string = any> extends Store<
   Entry<T, ScopeName>
 > {
-  constructor({ status }: Partial<Entry<T, ScopeName>> = {}) {
-    super(getInitialState(status));
+  apiSubscription: null | Subscription;
+  private listenersCount: number;
+
+  constructor(entry: Entry<T, ScopeName>) {
+    super(entry);
+    this.apiSubscription = null;
+    this.listenersCount = 0;
+  }
+
+  static fromStatus(status?: Entry<any, any>["status"]): EntryStore {
+    return new EntryStore(getInitialState(status));
   }
 
   setData(
@@ -50,6 +61,7 @@ export class EntryStore<T = any, ScopeName extends string = any> extends Store<
       value,
       timestamp: Date.now(),
       status: DataStatus.ok,
+      isStale: false,
     }));
   }
 
@@ -60,15 +72,15 @@ export class EntryStore<T = any, ScopeName extends string = any> extends Store<
     this.state.status = isIdleStatus(this.state.status)
       ? DataStatus.updating
       : DataStatus.requested;
-    this.state.apiSubscription = {
-      unsubscribe,
-    };
+    this.state.hasSubscribers = true;
+    this.apiSubscription = { unsubscribe };
   }
 
   removeSubscription(): void {
-    if (this.state.apiSubscription) {
-      this.state.apiSubscription.unsubscribe();
-      this.state.apiSubscription = null;
+    if (this.apiSubscription) {
+      this.apiSubscription.unsubscribe();
+      this.apiSubscription = null;
+      this.state.hasSubscribers = false;
     }
     if (this.state.status === DataStatus.requested) {
       // NOTE:
@@ -77,12 +89,20 @@ export class EntryStore<T = any, ScopeName extends string = any> extends Store<
     }
   }
 
-  removeListener(cb: (state: Entry<T, ScopeName>) => void): void {
-    super.removeListener(cb);
+  addClientListener(
+    cb: Parameters<Store<Entry<T, ScopeName>>["on"]>[1]
+  ): () => void {
+    const unlisten = super.on("change", cb);
+    // return unlisten;
+    this.listenersCount += 1;
+    return () => {
+      unlisten();
 
-    if (this.listeners.size === 0) {
-      // no more subscribers left, unsub from socket
-      this.removeSubscription();
-    }
+      this.listenersCount -= 1;
+      if (this.listenersCount === 0) {
+        // no more subscribers left, unsub from socket
+        this.removeSubscription();
+      }
+    };
   }
 }

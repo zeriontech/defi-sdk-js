@@ -9,7 +9,10 @@ export type { MergeStrategy } from "./shared/mergeStrategies";
 export type { SocketNamespace } from "./shared/SocketNamespace";
 export type { CachePolicy } from "./cache/CachePolicy";
 export type { Entry } from "./cache/Entry";
+export { EntryStore } from "./cache/Entry";
 export type { Hooks, Result } from "./client";
+export { RequestCache } from "./cache/RequestCache";
+export { PersistentCache } from "./cache/PersistentCache";
 export { DataStatus } from "./cache/DataStatus";
 export { createSocketNamespace } from "./socket/createSocketNamespace";
 

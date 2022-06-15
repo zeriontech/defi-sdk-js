@@ -36,7 +36,7 @@ export function EntryInfo<T>({
           .filter(key => key !== "value")
           .map(key => (
             <code key={key}>
-              {key}: {(entry as any)[key]}
+              {key}: {JSON.stringify((entry as any)[key])}
             </code>
           ))
           .map((el, index) => (

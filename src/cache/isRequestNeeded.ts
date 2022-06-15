@@ -11,7 +11,7 @@ export function isRequestNeeded(
       return (
         !entry ||
         entry.status === DataStatus.noRequests ||
-        (entry.status !== DataStatus.requested && !entry.apiSubscription)
+        (entry.status !== DataStatus.requested && !entry.hasSubscribers)
       );
     }
     case "cache-first": {

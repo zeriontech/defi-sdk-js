@@ -1,4 +1,11 @@
 import React, { useCallback, useMemo, useReducer, useState } from "react";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Link,
+  LinkProps,
+} from "react-router-dom";
 import ReactDOM from "react-dom";
 import { CachePolicy, Entry } from "../../src";
 import { client } from "../../src";
@@ -10,6 +17,8 @@ import { endpoint, API_TOKEN } from "../config";
 import { EntryInfo } from "./EntryInfo";
 import { Helpers } from "./Helpers";
 import { VStack } from "./VStack";
+import { CustomCache } from "./custom-cache/CustomCache";
+import "./global.module.css";
 
 client.configure({
   url: endpoint,
@@ -220,11 +229,46 @@ function App() {
     </VStack>
   );
 }
+
+function NavLink(props: LinkProps) {
+  // too lazy to write css
+  const [hovered, setHovered] = useState(false);
+  return (
+    <Link
+      style={{
+        display: "block",
+        textDecoration: "none",
+        color: "#44444e",
+        padding: 16,
+        backgroundColor: hovered ? "#e6e7e9" : "transparent",
+      }}
+      {...props}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    />
+  );
+}
+
 function render() {
   ReactDOM.render(
-    <div>
-      <App />
-    </div>,
+    <BrowserRouter>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "20% auto",
+          gridGap: 20,
+        }}
+      >
+        <div style={{ backgroundColor: "#f5f5f7", paddingTop: 16 }}>
+          <NavLink to="/">Main</NavLink>
+          <NavLink to="/custom-cache">CustomCache</NavLink>
+        </div>
+        <Routes>
+          <Route path="/" element={<App />} />
+          <Route path="/custom-cache" element={<CustomCache />} />
+        </Routes>
+      </div>
+    </BrowserRouter>,
     document.getElementById("root")
   );
 }
