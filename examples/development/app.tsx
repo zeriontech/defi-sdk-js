@@ -261,7 +261,7 @@ function render() {
       >
         <div style={{ backgroundColor: "#f5f5f7", paddingTop: 16 }}>
           <NavLink to="/">Main</NavLink>
-          <NavLink to="/custom-cache">Custom cache</NavLink>
+          <NavLink to="/custom-cache">CustomCache</NavLink>
         </div>
         <Routes>
           <Route path="/" element={<App />} />

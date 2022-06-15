@@ -1,4 +1,9 @@
-import { set, entries } from "idb-keyval";
+import {
+  set as idbSet,
+  del as idbDel,
+  entries as idbEntries,
+} from "idb-keyval";
+import LRUCache from "lru-cache";
 import { Store } from "store-unit";
 import { CachePolicy } from "./CachePolicy";
 import { DataStatus } from "./DataStatus";
@@ -11,11 +16,20 @@ export class PersistentCache
   extends Store<{ usesStaleEntries: boolean }>
   implements RequestCache<EntryStore> {
   map: Map<Key, EntryStore>;
+  lruCache: LRUCache<Key, any>;
   private staleEntries: Set<EntryStore>;
 
-  constructor() {
+  constructor({ max = 50 }: { max?: number } = {}) {
     super({ usesStaleEntries: false });
     this.map = new Map();
+    this.lruCache = new LRUCache<Key, any>({
+      max,
+      dispose: (_value, key, reason) => {
+        if (reason === "evict") {
+          idbDel(key);
+        }
+      },
+    });
     this.staleEntries = new Set();
   }
 
@@ -33,13 +47,15 @@ export class PersistentCache
 
   safeWriteEntry(key: Key, entryStore: EntryStore): Promise<void> {
     if (entryStore.getState().status === DataStatus.ok) {
-      return set(key, entryStore.getState());
+      const value = entryStore.getState();
+      this.lruCache.set(key, value);
+      return idbSet(key, value);
     }
     return Promise.resolve();
   }
 
   async load(): Promise<void> {
-    return entries().then(entries => {
+    return idbEntries().then(entries => {
       entries
         .filter(([, value]) => {
           return value.data != null && value.status === DataStatus.ok;
@@ -52,6 +68,7 @@ export class PersistentCache
             "change",
             this.getChangeHandler(key as string, entryStore)
           );
+          this.lruCache.set(key as string, entryStore);
           this.map.set(key as string, entryStore);
         });
     });

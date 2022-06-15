@@ -8,7 +8,6 @@ export interface Entry<T, ScopeName extends string> {
   status: DataStatus;
   timestamp: number;
   meta: Record<string, any>;
-  // apiSubscription: null | Subscription;
   hasSubscribers: boolean;
   isStale: boolean;
 }
@@ -106,27 +105,4 @@ export class EntryStore<T = any, ScopeName extends string = any> extends Store<
       }
     };
   }
-
-  // on: Store<Entry<T, ScopeName>>["on"] = (event, cb) => {
-  //   const unlisten = super.on(event, cb);
-  //   this.listenersCount += 1;
-  //   return () => {
-  //     unlisten();
-  //
-  //     this.listenersCount -= 1;
-  //     if (this.listenersCount === 0) {
-  //       // no more subscribers left, unsub from socket
-  //       this.removeSubscription();
-  //     }
-  //   };
-  // };
-
-  // removeListener(cb: (state: Entry<T, ScopeName>) => void): void {
-  //   super.removeListener(cb);
-  //
-  //   if (this.listeners.size === 0) {
-  //     // no more subscribers left, unsub from socket
-  //     this.removeSubscription();
-  //   }
-  // }
 }
