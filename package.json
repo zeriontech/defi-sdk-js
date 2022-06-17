@@ -87,7 +87,6 @@
     ]
   },
   "dependencies": {
-    "defi-sdk": "file:defi-sdk-0.1.0-alpha.35.tgz",
     "fast-deep-equal": "^3.1.3",
     "lru-cache": "^7.10.1",
     "react": ">=16.0.0",
