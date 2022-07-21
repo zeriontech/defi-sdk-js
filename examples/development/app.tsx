@@ -29,6 +29,9 @@ client.configure({
       return request;
     },
   },
+  ioOptions: {
+    query: { testQueryOption: "hello" },
+  },
 });
 Object.assign(window, { client });
 

@@ -1,3 +1,4 @@
+import "regenerator-runtime/runtime.js";
 import {
   set as idbSet,
   del as idbDel,

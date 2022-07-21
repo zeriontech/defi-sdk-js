@@ -1,3 +1,4 @@
+import type io from "socket.io-client";
 import type { Response } from "./requests/Response";
 import type { Request } from "./requests/Request";
 import type { ResponsePayload } from "./requests/ResponsePayload";
@@ -201,9 +202,12 @@ export interface Hooks {
   ) => Request<RequestPayload, ScopeName>;
 }
 
+type IOOptions = Parameters<typeof io>[0];
+
 interface ConstructorConfig {
   url: string;
   apiToken: string;
+  ioOptions?: IOOptions;
   hooks?: Partial<Hooks>;
   cache?: RequestCache<EntryStore>;
   getCacheKey?: (params: { key: string; requestId: number }) => string | number;
@@ -234,6 +238,7 @@ function getOrCreateEntry(
 export class BareClient {
   url: string | null;
   apiToken: string | null;
+  ioOptions: IOOptions;
   cache: RequestCache<EntryStore>;
   hooks: Hooks;
   private customGetCacheKey?: ConstructorConfig["getCacheKey"];
@@ -241,6 +246,7 @@ export class BareClient {
   constructor(config: null | ConstructorConfig) {
     this.url = config ? config.url : null;
     this.apiToken = config ? config.apiToken : null;
+    this.ioOptions = config?.ioOptions;
     this.cache = config?.cache || new RequestCache();
     this.customGetCacheKey = config?.getCacheKey;
     this.hooks = this.configureHooks(config);
@@ -261,13 +267,19 @@ export class BareClient {
         "Client must be configured with a url and a token. Call client.configure({ url, apiToken }) before calling this method"
       );
     }
-    return createSocketNamespace(this.url, this.apiToken, namespace);
+    return createSocketNamespace(
+      this.url,
+      this.apiToken,
+      namespace,
+      this.ioOptions
+    );
   }
 
   configure(config: ConstructorConfig): this {
-    const { url, apiToken } = config;
+    const { url, apiToken, ioOptions } = config;
     this.url = url;
     this.apiToken = apiToken;
+    this.ioOptions = ioOptions;
     this.hooks = this.configureHooks(config);
     this.cache = config.cache || this.cache;
     this.customGetCacheKey = config.getCacheKey;
