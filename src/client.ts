@@ -295,6 +295,8 @@ export class BareClient {
     rawOptions: ClientSubscribeOptions<T, Namespace, ScopeName, RequestPayload>
   ): ReturnType<typeof subscribe> {
     const options = normalizeOptions(rawOptions, this.namespaceFactory);
+    const { namespace } = options.socketNamespace;
+    this.hooks.willSendRequest(options.body, { namespace });
     return subscribe(options);
   }
 
@@ -356,8 +358,9 @@ export class BareClient {
     const requestId = keyToRequestId(key);
     const cacheKey = this.getCacheKey(key, requestId);
 
-    const { socketNamespace } = options;
-    const { namespace } = socketNamespace;
+    const { namespace } = options.socketNamespace;
+
+    // NOTE: don't mutate body to create consistent cache key
     const body = this.hooks.willSendRequest(
       {
         ...options.body,
