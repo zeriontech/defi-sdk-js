@@ -35,6 +35,17 @@ client.configure({
 });
 Object.assign(window, { client });
 
+client.subscribe<any[], "chains", "info">({
+  namespace: "chains",
+  body: {
+    scope: ["info"],
+    payload: {},
+  },
+  onMessage: (_event, data) => {
+    console.log("got chains", data.payload.info);
+  },
+});
+
 const ETH = "eth";
 const USDC = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48";
 const UNI = "0x1f9840a85d5af5bf1d1762f925bdaddc4201f984";

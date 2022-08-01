@@ -45,6 +45,7 @@ export interface BaseOptions<
   socketNamespace: SocketNamespace<Namespace>;
   method?: "subscribe" | "get";
   body: Request<RequestPayload, ScopeName>;
+  verifyFn?: typeof verify;
 }
 
 type MessageHandler<T, ScopeName extends string> = (
@@ -96,7 +97,6 @@ export type ConvenienceOptionsCached<
   mergeStrategy?: MergeStrategy;
   getId?: (x: any) => string | number;
   onAnyMessage?: MessageHandler<any, ScopeName>;
-  verifyFn?: typeof verify;
 };
 
 export type CachedRequestOptions<
@@ -119,9 +119,7 @@ export function subscribe<
   onMessage,
   onAnyMessage,
   verifyFn = verify,
-}: Options<R, Namespace, ScopeName> & {
-  verifyFn?: typeof verify;
-}): Unsubscribe {
+}: Options<R, Namespace, ScopeName>): Unsubscribe {
   const { socket, namespace } = socketNamespace;
   if (!body.scope.length) {
     throw new Error("Invalid scope argument: scope cannot be empty");
@@ -291,13 +289,28 @@ export class BareClient {
     Namespace extends string = any,
     ScopeName extends string = any,
     RequestPayload = any
-  >(
-    rawOptions: ClientSubscribeOptions<T, Namespace, ScopeName, RequestPayload>
-  ): ReturnType<typeof subscribe> {
+  >({
+    verifyFn = verifyByRequestId,
+    ...rawOptions
+  }: ClientSubscribeOptions<
+    T,
+    Namespace,
+    ScopeName,
+    RequestPayload
+  >): ReturnType<typeof subscribe> {
     const options = normalizeOptions(rawOptions, this.namespaceFactory);
     const { namespace } = options.socketNamespace;
     this.hooks.willSendRequest(options.body, { namespace });
-    return subscribe(options);
+    const key = createKey(options);
+    const requestId = keyToRequestId(key);
+    return subscribe({
+      ...options,
+      verifyFn,
+      body: {
+        ...options.body,
+        payload: { ...options.body.payload, request_id: requestId },
+      },
+    });
   }
 
   getFromCache<
