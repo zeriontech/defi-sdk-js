@@ -10,6 +10,16 @@ export interface Entry<T, ScopeName extends string> {
   meta: Record<string, any>;
   hasSubscribers: boolean;
   isStale: boolean;
+  loading: boolean;
+  done: boolean;
+}
+
+export function isIdleStatus(status: DataStatus): boolean {
+  return status === DataStatus.error || status === DataStatus.ok;
+}
+
+function isLoadingStatus(status: DataStatus) {
+  return status === DataStatus.requested || status === DataStatus.updating;
 }
 
 export const getInitialState = <T, ScopeName extends string>(
@@ -22,14 +32,12 @@ export const getInitialState = <T, ScopeName extends string>(
   meta: {},
   hasSubscribers: false,
   isStale: false,
+  loading: isLoadingStatus(initialStatus ?? DataStatus.noRequests),
+  done: false,
 });
 
 interface Subscription {
   unsubscribe: Unsubscribe;
-}
-
-function isIdleStatus(status: DataStatus) {
-  return status === DataStatus.error || status === DataStatus.ok;
 }
 
 export class EntryStore<T = any, ScopeName extends string = any> extends Store<
@@ -51,7 +59,9 @@ export class EntryStore<T = any, ScopeName extends string = any> extends Store<
   setData(
     scopeName: ScopeName,
     value: T | null,
-    meta: Record<string, any> = {}
+    meta: Record<string, any> = {},
+    status: DataStatus,
+    done: boolean
   ): void {
     const data = { [scopeName]: value } as Record<ScopeName, T>;
     this.setState(state => ({
@@ -60,8 +70,10 @@ export class EntryStore<T = any, ScopeName extends string = any> extends Store<
       meta,
       value,
       timestamp: Date.now(),
-      status: DataStatus.ok,
+      status,
       isStale: false,
+      loading: isLoadingStatus(status),
+      done,
     }));
   }
 

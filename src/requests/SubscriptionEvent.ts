@@ -1,1 +1,6 @@
-export type SubscriptionEvent = "received" | "appended" | "changed" | "removed";
+export type SubscriptionEvent =
+  | "received"
+  | "appended"
+  | "changed"
+  | "removed"
+  | "done";

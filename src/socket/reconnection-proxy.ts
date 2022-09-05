@@ -73,7 +73,11 @@ export function reconnectionProxy(
       const args = arguments; // eslint-disable-line prefer-rest-params
       if (event === "get") {
         handleGet(socket, endpoint, args);
-      } else if (event === "subscribe" || event === "unsubscribe") {
+      } else if (
+        event === "stream" ||
+        event === "subscribe" ||
+        event === "unsubscribe"
+      ) {
         handleSubscribe(socket, args);
       }
       originalEmit.apply(socket, arguments as any); // eslint-disable-line prefer-rest-params
