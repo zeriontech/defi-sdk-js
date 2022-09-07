@@ -3,6 +3,7 @@ import {
   set as idbSet,
   del as idbDel,
   entries as idbEntries,
+  clear as idbClear,
 } from "idb-keyval";
 import LRUCache from "lru-cache";
 import { Store } from "store-unit";
@@ -110,5 +111,10 @@ export class PersistentCache
 
   remove(key: Key): void {
     this.map.delete(key);
+  }
+
+  async clear(): Promise<void> {
+    this.map.clear();
+    return idbClear();
   }
 }

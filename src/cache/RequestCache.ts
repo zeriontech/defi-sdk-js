@@ -21,4 +21,8 @@ export class RequestCache<Value> {
   remove(key: Key): void {
     this.map.delete(key);
   }
+
+  clear(): void {
+    this.map.clear();
+  }
 }
