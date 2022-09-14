@@ -414,7 +414,7 @@ export class BareClient {
           if (convenienceOptions.method === "stream" && event === "done") {
             entryStore.setData(
               scope,
-              entryState.data,
+              entryState.value,
               meta,
               DataStatus.ok,
               true
