@@ -412,13 +412,13 @@ export class BareClient {
           }
           const entryState = entryStore.getState();
           if (convenienceOptions.method === "stream" && event === "done") {
-            entryStore.setData(
-              scope,
-              entryState.value,
+            entryStore.setData({
+              scopeName: scope,
+              value: entryState.value,
               meta,
-              DataStatus.ok,
-              true
-            );
+              status: DataStatus.ok,
+              isDone: true,
+            });
             return;
           }
           const merged = mergeStrategy({
@@ -435,8 +435,13 @@ export class BareClient {
                 ? DataStatus.updating
                 : entryState.status
               : DataStatus.ok;
-          const done = !(convenienceOptions.method === "stream");
-          entryStore.setData(scope, merged, meta, status, done);
+          entryStore.setData({
+            scopeName: scope,
+            value: merged,
+            meta,
+            status,
+            isDone: convenienceOptions.method !== "stream",
+          });
         },
       });
       entryStore.makeSubscription({ unsubscribe });

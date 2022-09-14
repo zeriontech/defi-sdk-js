@@ -55,8 +55,9 @@ export function useSubscription<
           return {
             ...prevEntry,
             status: entry ? entry.status : prevEntry.status,
-            done: entry ? entry.done : prevEntry.done,
-            loading: entry ? entry.loading : prevEntry.loading,
+            isDone: entry ? entry.isDone : prevEntry.isDone,
+            isFetching: entry ? entry.isFetching : prevEntry.isFetching,
+            isLoading: entry ? entry.isLoading : prevEntry.isLoading,
           };
         }
         return entry;

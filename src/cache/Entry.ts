@@ -10,8 +10,9 @@ export interface Entry<T, ScopeName extends string> {
   meta: Record<string, any>;
   hasSubscribers: boolean;
   isStale: boolean;
-  loading: boolean;
-  done: boolean;
+  isLoading: boolean;
+  isFetching: boolean;
+  isDone: boolean;
 }
 
 export function isIdleStatus(status: DataStatus): boolean {
@@ -19,6 +20,10 @@ export function isIdleStatus(status: DataStatus): boolean {
 }
 
 function isLoadingStatus(status: DataStatus) {
+  return status === DataStatus.requested;
+}
+
+function isFetchingStatus(status: DataStatus) {
   return status === DataStatus.requested || status === DataStatus.updating;
 }
 
@@ -32,8 +37,9 @@ export const getInitialState = <T, ScopeName extends string>(
   meta: {},
   hasSubscribers: false,
   isStale: false,
-  loading: isLoadingStatus(initialStatus ?? DataStatus.noRequests),
-  done: false,
+  isLoading: isLoadingStatus(initialStatus ?? DataStatus.noRequests),
+  isFetching: isFetchingStatus(initialStatus ?? DataStatus.noRequests),
+  isDone: false,
 });
 
 interface Subscription {
@@ -56,13 +62,19 @@ export class EntryStore<T = any, ScopeName extends string = any> extends Store<
     return new EntryStore(getInitialState(status));
   }
 
-  setData(
-    scopeName: ScopeName,
-    value: T | null,
-    meta: Record<string, any> = {},
-    status: DataStatus,
-    done: boolean
-  ): void {
+  setData({
+    scopeName,
+    value,
+    meta = {},
+    status,
+    isDone,
+  }: {
+    scopeName: ScopeName;
+    value: T | null;
+    meta?: Record<string, any>;
+    status: DataStatus;
+    isDone: boolean;
+  }): void {
     const data = { [scopeName]: value } as Record<ScopeName, T>;
     this.setState(state => ({
       ...state,
@@ -72,8 +84,9 @@ export class EntryStore<T = any, ScopeName extends string = any> extends Store<
       timestamp: Date.now(),
       status,
       isStale: false,
-      loading: isLoadingStatus(status),
-      done,
+      isLoading: isLoadingStatus(status),
+      isFetching: isFetchingStatus(status),
+      isDone,
     }));
   }
 
