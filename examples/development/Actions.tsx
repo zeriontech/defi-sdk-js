@@ -11,9 +11,6 @@ export function Actions() {
       return {
         scope: ["actions"],
         payload: {
-          // actions_asset_types:
-          //   actions_asset_types === 'all' ? [] : [actions_asset_types],
-          // actions_action_types,
           actions_search_query: "",
           currency: "usd",
           address: "0x42b9df65b219b3dd36ff330a4dd8f327a6ada990",
