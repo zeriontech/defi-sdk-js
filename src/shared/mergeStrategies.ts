@@ -12,7 +12,7 @@ interface ReceivedEvent<T> {
 }
 
 type UpdateEventList<T> = {
-  event: SubscriptionEvent & ("changed" | "appended" | "removed");
+  event: SubscriptionEvent & ("changed" | "appended" | "removed" | "done");
   prevData: Data<T> | null;
   newData: T[];
   getId?: typeof defaultGetId;

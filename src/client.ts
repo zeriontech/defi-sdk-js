@@ -5,7 +5,7 @@ import type { ResponsePayload } from "./requests/ResponsePayload";
 import type { Unsubscribe } from "./shared/Unsubscribe";
 import { verify } from "./requests/verify";
 import type { SocketNamespace } from "./shared/SocketNamespace";
-import { EntryStore } from "./cache/Entry";
+import { EntryStore, isIdleStatus } from "./cache/Entry";
 import type { Entry } from "./cache/Entry";
 import { CachePolicy } from "./cache/CachePolicy";
 import { isRequestNeeded } from "./cache/isRequestNeeded";
@@ -33,6 +33,7 @@ const subsciptionEvents: SubscriptionEvent[] = [
   "appended",
   "changed",
   "removed",
+  "done",
 ];
 
 export type Result<T, ScopeName extends string> = Entry<T, ScopeName>;
@@ -43,7 +44,7 @@ export interface BaseOptions<
   RequestPayload = any
 > {
   socketNamespace: SocketNamespace<Namespace>;
-  method?: "subscribe" | "get";
+  method?: "subscribe" | "get" | "stream";
   body: Request<RequestPayload, ScopeName>;
   verifyFn?: typeof verify;
 }
@@ -410,6 +411,16 @@ export class BareClient {
             return;
           }
           const entryState = entryStore.getState();
+          if (convenienceOptions.method === "stream" && event === "done") {
+            entryStore.setData({
+              scopeName: scope,
+              value: entryState.value,
+              meta,
+              status: DataStatus.ok,
+              isDone: true,
+            });
+            return;
+          }
           const merged = mergeStrategy({
             event,
             prevData: entryState.data
@@ -418,7 +429,19 @@ export class BareClient {
             newData: payload[scope] as any,
             getId,
           });
-          entryStore.setData(scope, merged, meta);
+          const status =
+            convenienceOptions.method === "stream"
+              ? isIdleStatus(entryState.status)
+                ? DataStatus.updating
+                : entryState.status
+              : DataStatus.ok;
+          entryStore.setData({
+            scopeName: scope,
+            value: merged,
+            meta,
+            status,
+            isDone: convenienceOptions.method !== "stream",
+          });
         },
       });
       entryStore.makeSubscription({ unsubscribe });

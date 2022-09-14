@@ -19,6 +19,17 @@ import { Helpers } from "./Helpers";
 import { VStack } from "./VStack";
 import { CustomCache } from "./custom-cache/CustomCache";
 import "./global.module.css";
+import { Actions } from "./Actions";
+
+function getQueryForBackendEnv() {
+  const params = new URLSearchParams(window.location.search);
+  const value = params.get("backend_env");
+  if (value) {
+    return { backend_env: value };
+  }
+}
+
+const query = getQueryForBackendEnv();
 
 client.configure({
   url: endpoint,
@@ -30,7 +41,7 @@ client.configure({
     },
   },
   ioOptions: {
-    query: { testQueryOption: "hello" },
+    query: { ...(query || {}), testQueryOption: "hello" },
   },
 });
 Object.assign(window, { client });
@@ -42,6 +53,7 @@ client.subscribe<any[], "chains", "info">({
     payload: {},
   },
   onMessage: (_event, data) => {
+    // eslint-disable-next-line no-console
     console.log("got chains", data.payload.info);
   },
 });
@@ -185,6 +197,7 @@ function App() {
   const [show4, toggle4] = useReducer(x => !x, false);
   const [show5, toggle5] = useReducer(x => !x, false);
   const [show6, toggle6] = useReducer(x => !x, false);
+  const [show7, toggle7] = useReducer(x => !x, false);
   const [showHelpers, toggleHelpers] = useReducer(x => !x, false);
   const [currency, setCurrency] = useState("usd");
   return (
@@ -224,6 +237,11 @@ function App() {
         <button onClick={toggle6}>toggle</button>
         <br />
         {show6 ? <Market /> : null}
+      </div>
+      <div>
+        <button onClick={toggle7}>toggle</button>
+        <br />
+        {show7 ? <Actions /> : null}
       </div>
 
       <h3>Helpers:</h3>

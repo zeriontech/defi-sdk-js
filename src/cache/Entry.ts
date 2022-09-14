@@ -10,6 +10,21 @@ export interface Entry<T, ScopeName extends string> {
   meta: Record<string, any>;
   hasSubscribers: boolean;
   isStale: boolean;
+  isLoading: boolean;
+  isFetching: boolean;
+  isDone: boolean;
+}
+
+export function isIdleStatus(status: DataStatus): boolean {
+  return status === DataStatus.error || status === DataStatus.ok;
+}
+
+function isLoadingStatus(status: DataStatus) {
+  return status === DataStatus.requested;
+}
+
+function isFetchingStatus(status: DataStatus) {
+  return status === DataStatus.requested || status === DataStatus.updating;
 }
 
 export const getInitialState = <T, ScopeName extends string>(
@@ -22,14 +37,13 @@ export const getInitialState = <T, ScopeName extends string>(
   meta: {},
   hasSubscribers: false,
   isStale: false,
+  isLoading: isLoadingStatus(initialStatus ?? DataStatus.noRequests),
+  isFetching: isFetchingStatus(initialStatus ?? DataStatus.noRequests),
+  isDone: false,
 });
 
 interface Subscription {
   unsubscribe: Unsubscribe;
-}
-
-function isIdleStatus(status: DataStatus) {
-  return status === DataStatus.error || status === DataStatus.ok;
 }
 
 export class EntryStore<T = any, ScopeName extends string = any> extends Store<
@@ -48,11 +62,19 @@ export class EntryStore<T = any, ScopeName extends string = any> extends Store<
     return new EntryStore(getInitialState(status));
   }
 
-  setData(
-    scopeName: ScopeName,
-    value: T | null,
-    meta: Record<string, any> = {}
-  ): void {
+  setData({
+    scopeName,
+    value,
+    meta = {},
+    status,
+    isDone,
+  }: {
+    scopeName: ScopeName;
+    value: T | null;
+    meta?: Record<string, any>;
+    status: DataStatus;
+    isDone: boolean;
+  }): void {
     const data = { [scopeName]: value } as Record<ScopeName, T>;
     this.setState(state => ({
       ...state,
@@ -60,8 +82,11 @@ export class EntryStore<T = any, ScopeName extends string = any> extends Store<
       meta,
       value,
       timestamp: Date.now(),
-      status: DataStatus.ok,
+      status,
       isStale: false,
+      isLoading: isLoadingStatus(status),
+      isFetching: isFetchingStatus(status),
+      isDone,
     }));
   }
 
