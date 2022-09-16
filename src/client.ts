@@ -26,6 +26,7 @@ import { addressCharts } from "./domains/addressCharts";
 import { assetsCharts } from "./domains/assetsCharts";
 import { assetsFullInfo } from "./domains/assetsFullInfo";
 import { addressPortfolio } from "./domains/addressPortfolio";
+import { addressPortfolioDecomposition } from "./domains/addressPortfolioDecomposition";
 import { PersistentCache } from "./cache/PersistentCache";
 
 const subsciptionEvents: SubscriptionEvent[] = [
@@ -462,6 +463,7 @@ export class Client extends BareClient {
   addressLoans = addressLoans;
   addressPositions = addressPositions;
   addressPortfolio = addressPortfolio;
+  addressPortfolioDecomposition = addressPortfolioDecomposition;
   addressCharts = addressCharts;
   assetsCharts = assetsCharts;
   assetsPrices = assetsPrices;
