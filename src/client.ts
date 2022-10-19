@@ -416,7 +416,10 @@ export class BareClient {
             entryStore.setData({
               scopeName: scope,
               value: entryState.value,
-              meta,
+              meta: {
+                ...meta,
+                next_cursor: entryState.meta?.next_cursor,
+              },
               status: DataStatus.ok,
               isDone: true,
             });
