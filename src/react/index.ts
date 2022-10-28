@@ -1,5 +1,5 @@
-export { useSubscription } from "./useSubscription";
-export type { HookOptions } from "./useSubscription";
+export { useSubscription, usePaginatedSubscription } from "./useSubscription";
+export type { HookOptions, PaginatedHookOptions } from "./useSubscription";
 
 export { createDomainHook } from "./domains/createDomainHook";
 

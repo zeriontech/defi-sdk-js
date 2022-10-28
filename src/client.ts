@@ -10,7 +10,7 @@ import type { Entry } from "./cache/Entry";
 import { CachePolicy } from "./cache/CachePolicy";
 import { isRequestNeeded } from "./cache/isRequestNeeded";
 import { SubscriptionEvent } from "./requests/SubscriptionEvent";
-import { mergeDict, MergeStrategy } from "./shared/mergeStrategies";
+import { mergeDict, mergeList, MergeStrategy } from "./shared/mergeStrategies";
 import { verifyByRequestId } from "./requests/verifyByRequestId";
 import { shouldReturnCachedData } from "./cache/shouldReturnCachedData";
 import { defaultCachePolicy } from "./cache/defaultCachePolicy";
@@ -65,10 +65,12 @@ export interface Options<
   onAnyMessage?: MessageHandler<T, ScopeName>;
 }
 
+type SocketNamespaceOptions<Namespace extends string> = {
+  socketNamespace: SocketNamespace<Namespace>;
+};
+
 export type NamespaceOptions<Namespace extends string> =
-  | {
-      socketNamespace: SocketNamespace<Namespace>;
-    }
+  | SocketNamespaceOptions<Namespace>
   | { namespace: Namespace };
 
 type ConvenienceOptions<
@@ -90,15 +92,29 @@ export type ClientSubscribeOptions<
   ) => void;
 };
 
-export type ConvenienceOptionsCached<
-  Namespace extends string,
-  ScopeName extends string,
-  RequestPayload = any
-> = ConvenienceOptions<Namespace, ScopeName, RequestPayload> & {
+type CachedOptions<ScopeName extends string> = {
   cachePolicy?: CachePolicy;
   mergeStrategy?: MergeStrategy;
   getId?: (x: any) => string | number;
   onAnyMessage?: MessageHandler<any, ScopeName>;
+};
+
+export type ConvenienceOptionsCached<
+  Namespace extends string,
+  ScopeName extends string,
+  RequestPayload = any
+> = ConvenienceOptions<Namespace, ScopeName, RequestPayload> &
+  CachedOptions<ScopeName>;
+
+export type PaginatedOptionsCached<
+  Namespace extends string,
+  ScopeName extends string,
+  RequestPayload = any
+> = ConvenienceOptionsCached<Namespace, ScopeName, RequestPayload> & {
+  method: "get" | "stream";
+  cursorKey: string;
+  limitKey: string;
+  limit: number;
 };
 
 export type CachedRequestOptions<
@@ -107,6 +123,15 @@ export type CachedRequestOptions<
   ScopeName extends string,
   RequestPayload = any
 > = ConvenienceOptionsCached<Namespace, ScopeName, RequestPayload> & {
+  onData: (data: Result<T, ScopeName>) => void;
+};
+
+export type CachedPaginatedRequestOptions<
+  T,
+  Namespace extends string,
+  ScopeName extends string,
+  RequestPayload = any
+> = PaginatedOptionsCached<Namespace, ScopeName, RequestPayload> & {
   onData: (data: Result<T, ScopeName>) => void;
 };
 
@@ -182,7 +207,7 @@ const keyToRequestId = (key: string) => {
 function normalizeOptions<T, Namespace extends string>(
   options: T & NamespaceOptions<Namespace>,
   namespaceFactory: (namespace: Namespace) => SocketNamespace<Namespace>
-): T & { socketNamespace: SocketNamespace<Namespace> } {
+): T & SocketNamespaceOptions<Namespace> {
   if ("socketNamespace" in options) {
     return options;
   } else if ("namespace" in options) {
@@ -358,7 +383,6 @@ export class BareClient {
   >({
     cachePolicy = defaultCachePolicy,
     onData,
-    // mergingFunction,
     getId,
     mergeStrategy = mergeDict,
     verifyFn = verifyByRequestId,
@@ -369,7 +393,7 @@ export class BareClient {
   } {
     const options = normalizeOptions(convenienceOptions, this.namespaceFactory);
     const key = createKey(options);
-    // const requestId = requestToRequestId(options);
+
     const requestId = keyToRequestId(key);
     const cacheKey = this.getCacheKey(key, requestId);
 
@@ -412,7 +436,7 @@ export class BareClient {
             return;
           }
           const entryState = entryStore.getState();
-          if (convenienceOptions.method === "stream" && event === "done") {
+          if (options.method === "stream" && event === "done") {
             entryStore.setData({
               scopeName: scope,
               value: entryState.value,
@@ -434,7 +458,7 @@ export class BareClient {
             getId,
           });
           const status =
-            convenienceOptions.method === "stream"
+            options.method === "stream"
               ? isIdleStatus(entryState.status)
                 ? DataStatus.updating
                 : entryState.status
@@ -444,7 +468,7 @@ export class BareClient {
             value: merged,
             meta,
             status,
-            isDone: convenienceOptions.method !== "stream",
+            isDone: options.method !== "stream",
           });
         },
       });
@@ -456,6 +480,106 @@ export class BareClient {
     }
     return {
       entryStore,
+      unsubscribe: () => unlisten(),
+    };
+  }
+
+  cachedPaginatedRequest<
+    T,
+    Namespace extends string = any,
+    ScopeName extends string = any
+  >({
+    cachePolicy = defaultCachePolicy,
+    mergeStrategy = mergeList,
+    onData,
+    cursorKey,
+    ...convenienceOptions
+  }: CachedPaginatedRequestOptions<T, Namespace, ScopeName>): {
+    entryStore: EntryStore<T[]>;
+    fetchMore(): void;
+    unsubscribe: Unsubscribe;
+  } {
+    const options = normalizeOptions(convenienceOptions, this.namespaceFactory);
+    const key = createKey(options);
+
+    const requestId = keyToRequestId(key);
+    const cacheKey = this.getCacheKey(key, requestId);
+    const maybeEntryStore = this.cache.get(cacheKey, cachePolicy);
+
+    const shouldMakeRequest = isRequestNeeded(
+      cachePolicy,
+      maybeEntryStore ? maybeEntryStore.getState() : null
+    );
+    const paginatedEntryStore = getOrCreateEntry(
+      this.cache,
+      cacheKey,
+      cachePolicy,
+      shouldMakeRequest ? DataStatus.requested : undefined
+    );
+
+    const initialPaginatedState = paginatedEntryStore.getState();
+
+    const fetchMoreWithEvent = (event: SubscriptionEvent) => {
+      const paginatedEntryState = paginatedEntryStore.getState();
+      const prevData = paginatedEntryState.value;
+
+      const body = {
+        ...options.body,
+        payload: {
+          ...options.body.payload,
+          [cursorKey]: paginatedEntryStore.getState().meta?.next_cursor,
+          [options.limitKey]: options.limit,
+        },
+      };
+
+      return this.cachedSubscribe<T[], Namespace, ScopeName>({
+        ...options,
+        mergeStrategy,
+        onData: data => {
+          const scope = options.body.scope.find(s => s in (data.data || {}));
+          const merged = data.value
+            ? mergeStrategy({
+                event: event as "appended", // looks like a ts bug
+                prevData,
+                newData: data.value,
+                getId: options.getId,
+              })
+            : paginatedEntryState.value;
+
+          paginatedEntryStore.setData({
+            scopeName: scope,
+            value: merged,
+            meta: data.meta,
+            status: data.status,
+            isDone:
+              options.method === "get" ||
+              (data.isDone && options.method === "stream"),
+            hasMore: (data.value?.length || 0) >= options.limit,
+          });
+        },
+        body,
+        cachePolicy,
+      });
+    };
+
+    fetchMoreWithEvent("received");
+
+    const fetchMore = () => {
+      const paginatedEntryState = paginatedEntryStore.getState();
+      if (paginatedEntryState.isLoading || paginatedEntryState.isFetching) {
+        return;
+      }
+      return fetchMoreWithEvent("appended");
+    };
+
+    if (shouldReturnCachedData(cachePolicy)) {
+      onData(initialPaginatedState);
+    }
+
+    const unlisten = paginatedEntryStore.addClientListener(onData);
+    return {
+      entryStore: paginatedEntryStore,
+      fetchMore,
       unsubscribe: () => unlisten(),
     };
   }

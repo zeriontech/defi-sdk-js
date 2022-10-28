@@ -19,7 +19,7 @@ import { Helpers } from "./Helpers";
 import { VStack } from "./VStack";
 import { CustomCache } from "./custom-cache/CustomCache";
 import "./global.module.css";
-import { Actions } from "./Actions";
+import { Actions, ActionsPaginated } from "./Actions";
 
 function getQueryForBackendEnv() {
   const params = new URLSearchParams(window.location.search);
@@ -198,6 +198,7 @@ function App() {
   const [show5, toggle5] = useReducer(x => !x, false);
   const [show6, toggle6] = useReducer(x => !x, false);
   const [show7, toggle7] = useReducer(x => !x, false);
+  const [show8, toggle8] = useReducer(x => !x, false);
   const [showHelpers, toggleHelpers] = useReducer(x => !x, false);
   const [currency, setCurrency] = useState("usd");
   return (
@@ -242,6 +243,11 @@ function App() {
         <button onClick={toggle7}>toggle</button>
         <br />
         {show7 ? <Actions /> : null}
+      </div>
+      <div>
+        <button onClick={toggle8}>toggle</button>
+        <br />
+        {show8 ? <ActionsPaginated /> : null}
       </div>
 
       <h3>Helpers:</h3>
