@@ -111,7 +111,7 @@ export type PaginatedOptionsCached<
   ScopeName extends string,
   RequestPayload = any
 > = ConvenienceOptionsCached<Namespace, ScopeName, RequestPayload> & {
-  method: "get" | "stream";
+  method?: "get" | "stream";
   cursorKey: string;
   limitKey: string;
   limit: number;
@@ -133,6 +133,7 @@ export type CachedPaginatedRequestOptions<
   RequestPayload = any
 > = PaginatedOptionsCached<Namespace, ScopeName, RequestPayload> & {
   onData: (data: Result<T, ScopeName>) => void;
+  useFullCache?: boolean;
 };
 
 export function subscribe<
@@ -348,16 +349,14 @@ export class BareClient {
   >(
     rawOptions: ConvenienceOptionsCached<Namespace, ScopeName, RequestPayload>
   ): Result<T, ScopeName> | null {
-    // rawOptions.onData
     if (!shouldReturnCachedData(rawOptions.cachePolicy || defaultCachePolicy)) {
       return null;
     }
     const options = normalizeOptions(rawOptions, this.namespaceFactory);
     const key = createKey(options);
-    // const requestId = requestToRequestId(options);
     const requestId = keyToRequestId(key);
     const cacheKey = this.getCacheKey(key, requestId);
-    // let cacheKey: string | number;
+
     const entryStore = this.cache.get(
       cacheKey,
       options.cachePolicy || defaultCachePolicy
@@ -493,6 +492,7 @@ export class BareClient {
     mergeStrategy = mergeList,
     onData,
     cursorKey,
+    useFullCache,
     ...convenienceOptions
   }: CachedPaginatedRequestOptions<T, Namespace, ScopeName>): {
     entryStore: EntryStore<T[]>;
@@ -519,6 +519,38 @@ export class BareClient {
 
     const initialPaginatedState = paginatedEntryStore.getState();
 
+    // we don't need to get full cached list every time, just on go back action in browser
+    if (!useFullCache && initialPaginatedState.value?.length) {
+      const firstBatchKey = createKey({
+        ...options,
+        body: {
+          ...options.body,
+          payload: {
+            ...options.body.payload,
+            [cursorKey]: undefined,
+            [options.limitKey]: options.limit,
+          },
+        },
+      });
+      const firstBatchRequestId = keyToRequestId(firstBatchKey);
+      const firstBatchCacheKey = this.getCacheKey(
+        firstBatchKey,
+        firstBatchRequestId
+      );
+      const maybeFirstBatchEntryState = this.cache
+        .get(firstBatchCacheKey, cachePolicy)
+        ?.getState();
+
+      if (maybeFirstBatchEntryState)
+        paginatedEntryStore.setData({
+          ...initialPaginatedState,
+          scopeName: options.body.scope.find(
+            s => s in (initialPaginatedState.data || {})
+          ),
+          value: maybeFirstBatchEntryState.value,
+        });
+    }
+
     const fetchMoreWithEvent = (event: SubscriptionEvent) => {
       const paginatedEntryState = paginatedEntryStore.getState();
       const prevData = paginatedEntryState.value;
@@ -527,7 +559,7 @@ export class BareClient {
         ...options.body,
         payload: {
           ...options.body.payload,
-          [cursorKey]: paginatedEntryStore.getState().meta?.next_cursor,
+          [cursorKey]: paginatedEntryState.meta?.next_cursor,
           [options.limitKey]: options.limit,
         },
       };
@@ -562,7 +594,9 @@ export class BareClient {
       });
     };
 
-    fetchMoreWithEvent("received");
+    if (!initialPaginatedState.value?.length) {
+      fetchMoreWithEvent("received");
+    }
 
     const fetchMore = () => {
       const paginatedEntryState = paginatedEntryStore.getState();

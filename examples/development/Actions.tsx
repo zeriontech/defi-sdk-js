@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import {
   mergeList,
   mergeListReverseChronological,
-  usePaginatedSubscription,
+  usePaginatedRequest,
   useSubscription,
 } from "../../src";
 import { EntryInfo } from "./EntryInfo";
@@ -41,10 +41,12 @@ interface Action {
 }
 
 export function ActionsPaginated() {
-  const entry = usePaginatedSubscription<Action, "address", "actions">({
+  const entry = usePaginatedRequest<Action, "address", "actions">({
     method: "stream",
     namespace: "address",
     mergeStrategy: mergeList,
+    cachePolicy: "cache-first",
+    useFullCache: true,
     body: useMemo(() => {
       return {
         scope: ["actions"],
