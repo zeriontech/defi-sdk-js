@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import equal from "fast-deep-equal";
-import { Entry, mergeList, MergeStrategy } from "../..";
 import type { verify } from "../../requests/verify";
 import { useSubscription, usePaginatedSubscription } from "../useSubscription";
 import type {
@@ -8,6 +7,9 @@ import type {
   PaginatedHookOptions,
   PaginatedResult,
 } from "../useSubscription";
+import { mergeList } from "../../shared/mergeStrategies";
+import type { MergeStrategy } from "../../shared/mergeStrategies";
+import { Entry } from "../../cache/Entry";
 
 export type Options<Namespace extends string, ScopeName extends string> = Omit<
   HookOptions<Namespace, ScopeName>,

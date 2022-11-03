@@ -434,6 +434,7 @@ export class BareClient {
       paginatedEntryStore.setData({
         scopeName,
         ...firstPageEntryState,
+        hasMore: paginatedEntryStore.getState().hasMore,
       });
   }
 
@@ -624,7 +625,7 @@ export class BareClient {
             isDone:
               options.method === "get" ||
               (data.isDone && options.method === "stream"),
-            hasMore: (data.value?.length || 0) >= options.limit,
+            hasMore: !data.isDone || (data.value?.length || 0) >= options.limit,
           });
         },
         body,

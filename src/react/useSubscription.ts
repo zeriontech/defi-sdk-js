@@ -214,7 +214,8 @@ export function usePaginatedRequest<
     cleanedCacheRef.current = true;
   }
 
-  const [fetchMore, setFetchMore] = useState<() => void | undefined>();
+  const fetchMoreRef = useRef<() => void>();
+  const [fetchMoreId, setFetchMoreId] = useState(0);
 
   const { entry, setEntry, options } = useRequestData<
     T[],
@@ -240,7 +241,8 @@ export function usePaginatedRequest<
       ...options,
       useFullCache,
     });
-    setFetchMore(() => clientFetchMore);
+    fetchMoreRef.current = clientFetchMore;
+    setFetchMoreId(current => current + 1);
     return unsubscribe;
   }, [enabled, options, setEntry, client, useFullCache]);
 
@@ -254,10 +256,16 @@ export function usePaginatedRequest<
       enabled,
       cachePolicy: options.cachePolicy,
     }) as PaginatedResult<T[], ScopeName>;
-    resultEntry.fetchMore = fetchMore;
+
+    if (fetchMoreId) {
+      return {
+        ...resultEntry,
+        fetchMore: fetchMoreRef.current,
+      };
+    }
 
     return resultEntry;
-  }, [entry, enabled, options.cachePolicy, fetchMore]);
+  }, [entry, enabled, options.cachePolicy, fetchMoreId]);
 }
 
 export function usePaginatedSubscription<
