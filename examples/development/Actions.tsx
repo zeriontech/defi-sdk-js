@@ -1,15 +1,14 @@
 import React, { useMemo } from "react";
 import {
-  mergeList,
   mergeListReverseChronological,
   useAddressActions,
-  usePaginatedRequest,
   useSubscription,
 } from "../../src";
+import { AddressAction } from "../../src/entities/AddressAction";
 import { EntryInfo } from "./EntryInfo";
 
 export function Actions() {
-  const entry = useSubscription({
+  const entry = useSubscription<AddressAction[], "address", "actions">({
     method: "stream",
     namespace: "address",
     mergeStrategy: mergeListReverseChronological,
@@ -30,7 +29,13 @@ export function Actions() {
     <>
       <EntryInfo
         entry={entry}
-        render={entry => <div>{JSON.stringify(entry.value)}</div>}
+        render={entry => (
+          <div>
+            {entry.value?.map(item => (
+              <div key={item.id}>{item.datetime}</div>
+            ))}
+          </div>
+        )}
       />
     </>
   );
@@ -52,12 +57,10 @@ export function ActionsPaginated() {
     }
   );
 
-  console.log(entry.value);
-
   return (
     <>
       <EntryInfo
-        entry={entry}
+        entry={{ ...entry, data: {} }}
         render={entry => (
           <div>
             {entry.value?.map(item => (
