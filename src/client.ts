@@ -132,7 +132,7 @@ export type CachedPaginatedRequestOptions<
   ScopeName extends string,
   RequestPayload = any
 > = PaginatedOptionsCached<Namespace, ScopeName, RequestPayload> & {
-  onData: (data: Result<T, ScopeName>) => void;
+  onData: (data: Result<T[], ScopeName>) => void;
   useFullCache?: boolean;
 };
 
@@ -341,14 +341,16 @@ export class BareClient {
     });
   }
 
-  getFromCache<
+  getCacheStore<
     T,
     Namespace extends string,
     ScopeName extends string,
     RequestPayload = any
   >(
-    rawOptions: ConvenienceOptionsCached<Namespace, ScopeName, RequestPayload>
-  ): Result<T, ScopeName> | null {
+    rawOptions:
+      | ConvenienceOptionsCached<Namespace, ScopeName, RequestPayload>
+      | PaginatedOptionsCached<Namespace, ScopeName, RequestPayload>
+  ): EntryStore<T, ScopeName> | null {
     if (!shouldReturnCachedData(rawOptions.cachePolicy || defaultCachePolicy)) {
       return null;
     }
@@ -361,6 +363,23 @@ export class BareClient {
       cacheKey,
       options.cachePolicy || defaultCachePolicy
     );
+    return entryStore;
+  }
+
+  getFromCache<
+    T,
+    Namespace extends string,
+    ScopeName extends string,
+    RequestPayload = any
+  >(
+    rawOptions: ConvenienceOptionsCached<Namespace, ScopeName, RequestPayload>
+  ): Result<T, ScopeName> | null {
+    const entryStore = this.getCacheStore<
+      T,
+      Namespace,
+      ScopeName,
+      RequestPayload
+    >(rawOptions);
     return entryStore ? entryStore.getState() : null;
   }
 
@@ -373,6 +392,49 @@ export class BareClient {
     } else {
       return requestId;
     }
+  }
+
+  slicePaginatedCache<
+    T,
+    Namespace extends string,
+    ScopeName extends string,
+    RequestPayload = any
+  >(
+    rawOptions: PaginatedOptionsCached<Namespace, ScopeName, RequestPayload>
+  ): void {
+    const paginatedEntryStore = this.getCacheStore<
+      T,
+      Namespace,
+      ScopeName,
+      RequestPayload
+    >(rawOptions);
+
+    const firstPageEntryState = this.getFromCache<
+      T,
+      Namespace,
+      ScopeName,
+      RequestPayload
+    >({
+      ...rawOptions,
+      body: {
+        ...rawOptions.body,
+        payload: {
+          ...rawOptions.body.payload,
+          [rawOptions.cursorKey]: undefined,
+          [rawOptions.limitKey]: rawOptions.limit,
+        },
+      },
+    });
+
+    const scopeName = rawOptions.body.scope.find(
+      s => s in (firstPageEntryState?.data || {})
+    );
+
+    if (firstPageEntryState && paginatedEntryStore && scopeName)
+      paginatedEntryStore.setData({
+        scopeName,
+        ...firstPageEntryState,
+      });
   }
 
   cachedSubscribe<
@@ -521,34 +583,10 @@ export class BareClient {
 
     // we don't need to get full cached list every time, just on go back action in browser
     if (!useFullCache && initialPaginatedState.value?.length) {
-      const firstBatchKey = createKey({
+      this.slicePaginatedCache({
         ...options,
-        body: {
-          ...options.body,
-          payload: {
-            ...options.body.payload,
-            [cursorKey]: undefined,
-            [options.limitKey]: options.limit,
-          },
-        },
+        cursorKey,
       });
-      const firstBatchRequestId = keyToRequestId(firstBatchKey);
-      const firstBatchCacheKey = this.getCacheKey(
-        firstBatchKey,
-        firstBatchRequestId
-      );
-      const maybeFirstBatchEntryState = this.cache
-        .get(firstBatchCacheKey, cachePolicy)
-        ?.getState();
-
-      if (maybeFirstBatchEntryState)
-        paginatedEntryStore.setData({
-          ...initialPaginatedState,
-          scopeName: options.body.scope.find(
-            s => s in (initialPaginatedState.data || {})
-          ),
-          value: maybeFirstBatchEntryState.value,
-        });
     }
 
     const fetchMoreWithEvent = (event: SubscriptionEvent) => {

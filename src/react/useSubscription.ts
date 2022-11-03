@@ -32,7 +32,7 @@ export type PaginatedHookOptions<
   Namespace extends string = any,
   ScopeName extends string = any
 > = PaginatedOptionsCached<Namespace, ScopeName> &
-  HookExtraOptions & { method: "get" | "stream"; useFullCache?: boolean };
+  HookExtraOptions & { method?: "get" | "stream"; useFullCache?: boolean };
 
 export type PaginatedResult<T, ScopeName extends string = any> = Result<
   T,
@@ -68,31 +68,14 @@ function getResultEntry<
 function useRequestData<T, Namespace extends string, ScopeName extends string>({
   keepStaleData,
   client,
-  useFullCache,
   ...hookOptions
 }: (
   | ConvenienceOptionsCached<Namespace, ScopeName>
   | PaginatedOptionsCached<Namespace, ScopeName>
 ) &
-  Required<HookExtraOptions> & {
-    useFullCache?: boolean;
-  }) {
+  Required<HookExtraOptions>) {
   const [entry, setEntry] = useState<Result<T, ScopeName> | null>(
-    client.getFromCache(
-      useFullCache || !("cursorKey" in hookOptions)
-        ? hookOptions
-        : {
-            ...hookOptions,
-            body: {
-              ...hookOptions.body,
-              payload: {
-                ...hookOptions.body.payload,
-                [hookOptions.cursorKey]: undefined,
-                [hookOptions.limitKey]: hookOptions.limit,
-              },
-            },
-          }
-    )
+    client.getFromCache(hookOptions)
   );
 
   const guardedSetEntry = useCallback(
@@ -224,6 +207,13 @@ export function usePaginatedRequest<
   ScopeName
 > {
   const client = currentClient || defaultClient;
+
+  const cleanedCacheRef = useRef(false);
+  if (!cleanedCacheRef.current && !useFullCache && "cursorKey" in hookOptions) {
+    client.slicePaginatedCache({ ...hookOptions, body });
+    cleanedCacheRef.current = true;
+  }
+
   const [fetchMore, setFetchMore] = useState<() => void | undefined>();
 
   const { entry, setEntry, options } = useRequestData<
@@ -235,7 +225,6 @@ export function usePaginatedRequest<
     client,
     enabled,
     body,
-    useFullCache,
     ...hookOptions,
   });
 
@@ -275,16 +264,27 @@ export function usePaginatedSubscription<
   T extends { id: string },
   Namespace extends string = any,
   ScopeName extends string = any
->(
-  hookOptions: PaginatedHookOptions<Namespace, ScopeName>
-): Omit<PaginatedResult<T[], ScopeName>, "data"> {
+>({
+  subscribe = true,
+  ...hookOptions
+}: PaginatedHookOptions<Namespace, ScopeName> & {
+  subscribe?: boolean;
+}): Omit<PaginatedResult<T[], ScopeName>, "data"> {
   const { value: subscriptionValue, ...subscriptionEntry } = useSubscription<
     T[],
     Namespace,
     ScopeName
   >({
     ...hookOptions,
+    body: {
+      ...hookOptions.body,
+      payload: {
+        ...hookOptions.body.payload,
+        [hookOptions.limitKey]: Math.min(5, hookOptions.limit),
+      },
+    },
     method: "subscribe",
+    enabled: subscribe && hookOptions.enabled,
   });
   const { value: paginatedValue, ...paginatedEntry } = usePaginatedRequest<
     T,

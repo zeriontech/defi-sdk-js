@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import {
   mergeList,
   mergeListReverseChronological,
+  useAddressActions,
   usePaginatedRequest,
   useSubscription,
 } from "../../src";
@@ -35,32 +36,23 @@ export function Actions() {
   );
 }
 
-interface Action {
-  id: string;
-  datetime: string;
-}
-
 export function ActionsPaginated() {
-  const entry = usePaginatedRequest<Action, "address", "actions">({
-    method: "stream",
-    namespace: "address",
-    mergeStrategy: mergeList,
-    cachePolicy: "cache-first",
-    useFullCache: true,
-    body: useMemo(() => {
-      return {
-        scope: ["actions"],
-        payload: {
-          actions_search_query: "",
-          currency: "usd",
-          address: "0x42b9df65b219b3dd36ff330a4dd8f327a6ada990",
-        },
-      };
-    }, []),
-    limit: 2,
-    limitKey: "actions_limit",
-    cursorKey: "cursor",
-  });
+  const entry = useAddressActions(
+    {
+      actions_search_query: "",
+      currency: "usd",
+      address: "0x42b9df65b219b3dd36ff330a4dd8f327a6ada990",
+    },
+    {
+      method: "stream",
+      cachePolicy: "cache-first",
+      useFullCache: false,
+      limit: 2,
+      subscribe: true,
+    }
+  );
+
+  console.log(entry.value);
 
   return (
     <>
