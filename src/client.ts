@@ -228,7 +228,7 @@ export interface Hooks {
   ) => Request<RequestPayload, ScopeName>;
 }
 
-type IOOptions = Parameters<typeof io>[0];
+type IOOptions = Parameters<typeof io>[0] & { backend_env?: string };
 
 interface ConstructorConfig {
   url: string;
@@ -264,7 +264,7 @@ function getOrCreateEntry(
 export class BareClient {
   url: string | null;
   apiToken: string | null;
-  ioOptions: IOOptions;
+  ioOptions?: IOOptions;
   cache: RequestCache<EntryStore>;
   hooks: Hooks;
   private customGetCacheKey?: ConstructorConfig["getCacheKey"];
