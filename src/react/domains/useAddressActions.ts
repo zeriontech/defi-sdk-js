@@ -23,4 +23,4 @@ export const useAddressActions = createPaginatedDomainHook<
   AddressAction,
   typeof namespace,
   typeof scope
->({ namespace, scope, limitKey: "actions_limit" });
+>({ namespace, scope, limitKey: "actions_limit", method: "stream" });

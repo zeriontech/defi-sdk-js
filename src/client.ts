@@ -556,6 +556,7 @@ export class BareClient {
     onData,
     cursorKey,
     useFullCache,
+    method = "get",
     ...convenienceOptions
   }: CachedPaginatedRequestOptions<T, Namespace, ScopeName>): {
     entryStore: EntryStore<T[]>;
@@ -605,6 +606,7 @@ export class BareClient {
 
       return this.cachedSubscribe<T[], Namespace, ScopeName>({
         ...options,
+        method,
         mergeStrategy,
         onData: data => {
           const scope = options.body.scope.find(s => s in (data.data || {}));
@@ -622,9 +624,7 @@ export class BareClient {
             value: merged,
             meta: data.meta,
             status: data.status,
-            isDone:
-              options.method === "get" ||
-              (data.isDone && options.method === "stream"),
+            isDone: method === "get" || (data.isDone && method === "stream"),
             hasMore: !data.isDone || (data.value?.length || 0) >= options.limit,
           });
         },

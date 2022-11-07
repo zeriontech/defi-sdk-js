@@ -86,6 +86,7 @@ export function createPaginatedDomainHook<
   verifyFn,
   cursorKey = "cursor",
   limitKey = "limit",
+  method,
 }: {
   namespace: Namespace;
   scope: ScopeName;
@@ -94,6 +95,7 @@ export function createPaginatedDomainHook<
   verifyFn?: typeof verify;
   cursorKey?: string;
   limitKey?: string;
+  method?: "get" | "stream";
 }) {
   return (
     payload: RequestPayload,
@@ -116,6 +118,7 @@ export function createPaginatedDomainHook<
         namespace,
         cursorKey: cursorKey,
         limitKey: limitKey,
+        method: method || options.method,
         getId: getId || options.getId,
         mergeStrategy: mergeStrategy || options.mergeStrategy,
         verifyFn: verifyFn || options.verifyFn,
