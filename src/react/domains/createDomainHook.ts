@@ -7,7 +7,10 @@ import type {
   PaginatedHookOptions,
   PaginatedResult,
 } from "../useSubscription";
-import { mergeList } from "../../shared/mergeStrategies";
+import {
+  mergeList,
+  mergeListReverseChronological,
+} from "../../shared/mergeStrategies";
 import type { MergeStrategy } from "../../shared/mergeStrategies";
 import { Entry } from "../../cache/Entry";
 
@@ -22,7 +25,9 @@ export type PaginatedOptions<
 > = Omit<
   PaginatedHookOptions<Namespace, ScopeName>,
   "body" | "socketNamespace"
->;
+> & {
+  subscriptionMergeStrategy?: MergeStrategy;
+};
 
 export function createDomainHook<
   RequestPayload,
@@ -83,6 +88,7 @@ export function createPaginatedDomainHook<
   scope,
   getId,
   mergeStrategy = mergeList,
+  subscriptionMergeStrategy = mergeListReverseChronological,
   verifyFn,
   cursorKey = "cursor",
   limitKey = "limit",
@@ -92,6 +98,7 @@ export function createPaginatedDomainHook<
   scope: ScopeName;
   getId?: (x: any) => string | number;
   mergeStrategy?: MergeStrategy;
+  subscriptionMergeStrategy?: MergeStrategy;
   verifyFn?: typeof verify;
   cursorKey?: string;
   limitKey?: string;
@@ -121,6 +128,8 @@ export function createPaginatedDomainHook<
         method: method || options.method,
         getId: getId || options.getId,
         mergeStrategy: mergeStrategy || options.mergeStrategy,
+        subscriptionMergeStrategy:
+          subscriptionMergeStrategy || options.subscriptionMergeStrategy,
         verifyFn: verifyFn || options.verifyFn,
         body: useMemo(
           () => ({

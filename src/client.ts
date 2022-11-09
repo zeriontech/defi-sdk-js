@@ -184,11 +184,14 @@ export function subscribe<
 }
 
 function createKey<T, S extends string, N extends string>(
-  request: Pick<Options<T, S, N>, "socketNamespace" | "body">
+  request: Pick<Options<T, S, N>, "socketNamespace" | "body"> & {
+    cursorKey?: string;
+  }
 ) {
   return JSON.stringify({
     namespace: request.socketNamespace.namespace,
     body: request.body,
+    paginated: Boolean(request.cursorKey),
   });
 }
 
@@ -564,7 +567,7 @@ export class BareClient {
     unsubscribe: Unsubscribe;
   } {
     const options = normalizeOptions(convenienceOptions, this.namespaceFactory);
-    const key = createKey(options);
+    const key = createKey({ ...options, cursorKey });
 
     const requestId = keyToRequestId(key);
     const cacheKey = this.getCacheKey(key, requestId);
@@ -604,7 +607,7 @@ export class BareClient {
         },
       };
 
-      return this.cachedSubscribe<T[], Namespace, ScopeName>({
+      const result = this.cachedSubscribe<T[], Namespace, ScopeName>({
         ...options,
         method,
         mergeStrategy,
@@ -619,18 +622,27 @@ export class BareClient {
               })
             : paginatedEntryState.value;
 
+          const isDone =
+            method === "get" || (data.isDone && method === "stream");
+
+          if (isDone) {
+            result.unsubscribe();
+          }
+
           paginatedEntryStore.setData({
             scopeName: scope,
             value: merged,
             meta: data.meta,
             status: data.status,
-            isDone: method === "get" || (data.isDone && method === "stream"),
+            isDone,
             hasMore: !data.isDone || (data.value?.length || 0) >= options.limit,
           });
         },
         body,
         cachePolicy,
       });
+
+      return result;
     };
 
     if (!initialPaginatedState.value?.length) {

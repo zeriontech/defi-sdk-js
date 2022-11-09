@@ -1,3 +1,4 @@
+import { MergeStrategy } from "./../shared/mergeStrategies";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import equal from "fast-deep-equal";
 import type {
@@ -32,7 +33,10 @@ export type PaginatedHookOptions<
   Namespace extends string = any,
   ScopeName extends string = any
 > = PaginatedOptionsCached<Namespace, ScopeName> &
-  HookExtraOptions & { method?: "get" | "stream"; useFullCache?: boolean };
+  HookExtraOptions & {
+    method?: "get" | "stream";
+    useFullCache?: boolean;
+  };
 
 export type PaginatedResult<T, ScopeName extends string = any> = Result<
   T,
@@ -274,9 +278,12 @@ export function usePaginatedSubscription<
   ScopeName extends string = any
 >({
   subscribe = true,
+  subscriptionMergeStrategy,
+  cursorKey,
   ...hookOptions
 }: PaginatedHookOptions<Namespace, ScopeName> & {
   subscribe?: boolean;
+  subscriptionMergeStrategy?: MergeStrategy;
 }): Omit<PaginatedResult<T[], ScopeName>, "data"> {
   const { value: subscriptionValue, ...subscriptionEntry } = useSubscription<
     T[],
@@ -291,14 +298,16 @@ export function usePaginatedSubscription<
         [hookOptions.limitKey]: Math.min(5, hookOptions.limit),
       },
     },
+    mergeStrategy: subscriptionMergeStrategy,
     method: "subscribe",
     enabled: subscribe && hookOptions.enabled,
   });
+
   const { value: paginatedValue, ...paginatedEntry } = usePaginatedRequest<
     T,
     Namespace,
     ScopeName
-  >(hookOptions);
+  >({ ...hookOptions, cursorKey });
 
   const getIdRef = useRef<(item: T) => string | number>(
     item => hookOptions.getId?.(item) || item.id

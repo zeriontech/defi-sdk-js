@@ -27,7 +27,7 @@ export type ActionType =
   | "claim"
   | "mint";
 
-type ActionAsset =
+export type ActionAsset =
   | {
       fungible: Asset | Record<string, never>;
       nft?: undefined;
@@ -68,6 +68,43 @@ export interface AddressAction {
   label: {
     type: "to" | "from" | "application" | "contract";
     value: string;
+    display_value: {
+      wallet_address?: string;
+      contract_address?: string;
+      text?: string;
+    };
+  } | null;
+  content: {
+    transfers?: ActionTransfers;
+    single_asset?: {
+      asset: ActionAsset;
+    };
+  } | null;
+}
+
+export interface PendingAction {
+  id: string;
+  address: string;
+  datetime?: string;
+  transaction: {
+    chain: string;
+    outputChain?: string;
+    hash: string;
+    status: TransactionStatus;
+    nonce?: number;
+    fee?: {
+      asset: ActionAsset;
+      quantity: number;
+      price: number | null;
+    } | null;
+  };
+  type: {
+    value: ActionType;
+    action: "sell" | "buy" | "trade" | "bridge" | null;
+    display_value: string;
+  };
+  label: {
+    type: "to" | "from" | "application" | "contract";
     display_value: {
       wallet_address?: string;
       contract_address?: string;
