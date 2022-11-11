@@ -402,15 +402,16 @@ export class BareClient {
     Namespace extends string,
     ScopeName extends string,
     RequestPayload = any
-  >(
-    rawOptions: PaginatedOptionsCached<Namespace, ScopeName, RequestPayload>
-  ): void {
+  >({
+    cursorKey,
+    ...rawOptions
+  }: PaginatedOptionsCached<Namespace, ScopeName, RequestPayload>): void {
     const paginatedEntryStore = this.getCacheStore<
       T,
       Namespace,
       ScopeName,
       RequestPayload
-    >(rawOptions);
+    >({ cursorKey, ...rawOptions });
 
     const firstPageEntryState = this.getFromCache<
       T,
@@ -423,7 +424,7 @@ export class BareClient {
         ...rawOptions.body,
         payload: {
           ...rawOptions.body.payload,
-          [rawOptions.cursorKey]: undefined,
+          [cursorKey]: undefined,
           [rawOptions.limitKey]: rawOptions.limit,
         },
       },
@@ -501,6 +502,12 @@ export class BareClient {
             return;
           }
           const entryState = entryStore.getState();
+          if (
+            (event === "done" && options.method === "stream") ||
+            options.method === "get"
+          ) {
+            unsubscribe?.();
+          }
           if (options.method === "stream" && event === "done") {
             entryStore.setData({
               scopeName: scope,
@@ -567,6 +574,7 @@ export class BareClient {
     unsubscribe: Unsubscribe;
   } {
     const options = normalizeOptions(convenienceOptions, this.namespaceFactory);
+    const unsubscribeArray: (() => void)[] = [];
     const key = createKey({ ...options, cursorKey });
 
     const requestId = keyToRequestId(key);
@@ -616,21 +624,18 @@ export class BareClient {
         mergeStrategy,
         onData: data => {
           const scope = options.body.scope.find(s => s in (data.data || {}));
-          const merged = data.value
-            ? mergeStrategy({
-                event: event as "appended", // looks like a ts bug
-                prevData,
-                newData: data.value,
-                getId: options.getId,
-              })
-            : paginatedEntryState.value;
-
           const isDone =
             method === "get" || (data.isDone && method === "stream");
 
-          if (isDone) {
-            result.unsubscribe();
-          }
+          const merged =
+            (event !== "received" || isDone || !prevData?.length) && data.value
+              ? mergeStrategy({
+                  event: event as "appended", // looks like a ts bug
+                  prevData,
+                  newData: data.value,
+                  getId: options.getId,
+                })
+              : paginatedEntryState.value;
 
           paginatedEntryStore.setData({
             scopeName: scope,
@@ -645,12 +650,14 @@ export class BareClient {
         cachePolicy,
       });
 
+      unsubscribeArray.push(result.unsubscribe);
+
       return result;
     };
 
     if (
-      !initialPaginatedState.value?.length ||
-      !shouldReturnCachedData(cachePolicy)
+      shouldMakeRequest &&
+      (!useFullCache || !initialPaginatedState.value?.length)
     ) {
       fetchMoreWithEvent("received");
     }
@@ -671,7 +678,10 @@ export class BareClient {
     return {
       entryStore: paginatedEntryStore,
       fetchMore,
-      unsubscribe: () => unlisten(),
+      unsubscribe: () => {
+        unlisten();
+        unsubscribeArray.forEach(unsub => unsub());
+      },
     };
   }
 }

@@ -48,9 +48,9 @@ export function ActionsPaginated() {
       address: "0x42b9df65b219b3dd36ff330a4dd8f327a6ada990",
     },
     {
-      limit: 45,
+      limit: 7,
       subscribe: true,
-      cachePolicy: "cache-first",
+      useFullCache: true,
     }
   );
 
