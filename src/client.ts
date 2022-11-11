@@ -602,7 +602,10 @@ export class BareClient {
         ...options.body,
         payload: {
           ...options.body.payload,
-          [cursorKey]: paginatedEntryState.meta?.next_cursor,
+          [cursorKey]:
+            event === "received"
+              ? undefined
+              : paginatedEntryState.meta?.next_cursor,
           [options.limitKey]: options.limit,
         },
       };
@@ -645,7 +648,10 @@ export class BareClient {
       return result;
     };
 
-    if (!initialPaginatedState.value?.length) {
+    if (
+      !initialPaginatedState.value?.length ||
+      !shouldReturnCachedData(cachePolicy)
+    ) {
       fetchMoreWithEvent("received");
     }
 
