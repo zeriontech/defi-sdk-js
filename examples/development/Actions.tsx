@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import {
-  mergeListReverseChronological,
+  mergeList,
   useAddressActions,
   useSubscription,
 } from "../../src";
@@ -11,7 +11,7 @@ export function Actions() {
   const entry = useSubscription<AddressAction[], "address", "actions">({
     method: "stream",
     namespace: "address",
-    mergeStrategy: mergeListReverseChronological,
+    mergeStrategy: mergeList,
     body: useMemo(() => {
       return {
         scope: ["actions"],
@@ -19,7 +19,7 @@ export function Actions() {
           actions_search_query: "",
           currency: "usd",
           address: "0x42b9df65b219b3dd36ff330a4dd8f327a6ada990",
-          actions_limit: 100,
+          actions_limit: 10,
         },
       };
     }, []),
@@ -48,7 +48,7 @@ export function ActionsPaginated() {
       address: "0x42b9df65b219b3dd36ff330a4dd8f327a6ada990",
     },
     {
-      limit: 7,
+      limit: 6,
       subscribe: true,
       useFullCache: true,
     }

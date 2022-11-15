@@ -108,11 +108,7 @@ function useRequestData<T, Namespace extends string, ScopeName extends string>({
     [keepStaleData]
   );
 
-  const {
-    socketNamespace,
-    namespace,
-    ...restHookOptions
-  } = hookOptions as Omit<
+  const { socketNamespace, namespace } = hookOptions as Omit<
     ConvenienceOptionsCached<Namespace, ScopeName>,
     "enabled"
   > & {
@@ -120,11 +116,12 @@ function useRequestData<T, Namespace extends string, ScopeName extends string>({
     namespace?: Namespace;
   };
 
-  const [stableHookOptions, setStableHookOptions] = useState(restHookOptions);
+  const [stableHookOptions, setStableHookOptions] = useState(hookOptions);
+  const [stableOptions, setStableOptions] = useState<any>({});
 
-  if (stableHookOptions !== restHookOptions) {
-    if (!equal(stableHookOptions, restHookOptions)) {
-      setStableHookOptions(restHookOptions);
+  if (stableHookOptions !== hookOptions) {
+    if (!equal(stableHookOptions, hookOptions)) {
+      setStableHookOptions(hookOptions);
     }
   }
 
@@ -137,6 +134,12 @@ function useRequestData<T, Namespace extends string, ScopeName extends string>({
       { onData: guardedSetEntry }
     );
   }, [stableHookOptions, namespace, socketNamespace, guardedSetEntry]);
+
+  if (stableOptions !== options) {
+    if (!equal(stableOptions, options)) {
+      setStableOptions(options);
+    }
+  }
 
   /**
    * NOTE:
@@ -158,7 +161,7 @@ function useRequestData<T, Namespace extends string, ScopeName extends string>({
     }
   }
 
-  return { entry, setEntry: guardedSetEntry, options };
+  return { entry, setEntry: guardedSetEntry, options: stableOptions };
 }
 
 export function useSubscription<
@@ -248,7 +251,7 @@ export function usePaginatedRequest<
     fetchMoreRef.current = clientFetchMore;
     setFetchMoreId(current => current + 1);
     return unsubscribe;
-  }, [enabled, options, setEntry, client, useFullCache]);
+  }, [enabled, options, setEntry, client, useFullCache, hookOptions.method]);
 
   return useMemo(() => {
     const resultEntry = getResultEntry<
@@ -295,7 +298,7 @@ export function usePaginatedSubscription<
       ...hookOptions.body,
       payload: {
         ...hookOptions.body.payload,
-        [hookOptions.limitKey]: Math.min(5, hookOptions.limit),
+        [hookOptions.limitKey]: Math.min(5, hookOptions.limit - 1), // to distinguish subscribe and stream params requests' params
       },
     },
     mergeStrategy: subscriptionMergeStrategy,

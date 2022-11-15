@@ -1,4 +1,5 @@
 import type io from "socket.io-client";
+import { nanoid } from "nanoid";
 import type { Response } from "./requests/Response";
 import type { Request } from "./requests/Request";
 import type { ResponsePayload } from "./requests/ResponsePayload";
@@ -195,18 +196,7 @@ function createKey<T, S extends string, N extends string>(
   });
 }
 
-let reqId = 0;
-
-const getRequetsId = () => ++reqId;
-
-const memoCache: { [key: string]: number } = {};
-
-const keyToRequestId = (key: string) => {
-  if (!memoCache[key]) {
-    memoCache[key] = getRequetsId();
-  }
-  return memoCache[key];
-};
+const getRequetsId = () => nanoid();
 
 function normalizeOptions<T, Namespace extends string>(
   options: T & NamespaceOptions<Namespace>,
@@ -332,8 +322,7 @@ export class BareClient {
     const options = normalizeOptions(rawOptions, this.namespaceFactory);
     const { namespace } = options.socketNamespace;
     this.hooks.willSendRequest(options.body, { namespace });
-    const key = createKey(options);
-    const requestId = keyToRequestId(key);
+    const requestId = getRequetsId();
     return subscribe({
       ...options,
       verifyFn,
@@ -358,9 +347,7 @@ export class BareClient {
       return null;
     }
     const options = normalizeOptions(rawOptions, this.namespaceFactory);
-    const key = createKey(options);
-    const requestId = keyToRequestId(key);
-    const cacheKey = this.getCacheKey(key, requestId);
+    const cacheKey = createKey(options);
 
     const entryStore = this.cache.get(
       cacheKey,
@@ -407,14 +394,14 @@ export class BareClient {
     ...rawOptions
   }: PaginatedOptionsCached<Namespace, ScopeName, RequestPayload>): void {
     const paginatedEntryStore = this.getCacheStore<
-      T,
+      T[],
       Namespace,
       ScopeName,
       RequestPayload
     >({ cursorKey, ...rawOptions });
 
     const firstPageEntryState = this.getFromCache<
-      T,
+      T[],
       Namespace,
       ScopeName,
       RequestPayload
@@ -438,7 +425,7 @@ export class BareClient {
       paginatedEntryStore.setData({
         scopeName,
         ...firstPageEntryState,
-        hasMore: paginatedEntryStore.getState().hasMore,
+        hasMore: (firstPageEntryState.value?.length || 0) >= rawOptions.limit,
       });
   }
 
@@ -458,21 +445,7 @@ export class BareClient {
     unsubscribe: Unsubscribe;
   } {
     const options = normalizeOptions(convenienceOptions, this.namespaceFactory);
-    const key = createKey(options);
-
-    const requestId = keyToRequestId(key);
-    const cacheKey = this.getCacheKey(key, requestId);
-
-    const { namespace } = options.socketNamespace;
-
-    // NOTE: don't mutate body to create consistent cache key
-    const body = this.hooks.willSendRequest(
-      {
-        ...options.body,
-        payload: { ...options.body.payload, request_id: requestId },
-      },
-      { namespace }
-    );
+    const cacheKey = createKey(options);
 
     const maybeEntryStore = this.cache.get(cacheKey, cachePolicy);
 
@@ -491,6 +464,18 @@ export class BareClient {
     const unlisten = entryStore.addClientListener(onData);
 
     if (shouldMakeRequest) {
+      const { namespace } = options.socketNamespace;
+      const requestId = getRequetsId();
+
+      // NOTE: don't mutate body to create consistent cache key
+      const body = this.hooks.willSendRequest(
+        {
+          ...options.body,
+          payload: { ...options.body.payload, request_id: requestId },
+        },
+        { namespace }
+      );
+
       const unsubscribe = subscribe({
         ...options,
         body,
@@ -502,12 +487,6 @@ export class BareClient {
             return;
           }
           const entryState = entryStore.getState();
-          if (
-            (event === "done" && options.method === "stream") ||
-            options.method === "get"
-          ) {
-            unsubscribe?.();
-          }
           if (options.method === "stream" && event === "done") {
             entryStore.setData({
               scopeName: scope,
@@ -542,6 +521,12 @@ export class BareClient {
             status,
             isDone: options.method !== "stream",
           });
+          if (
+            (event === "done" && options.method === "stream") ||
+            options.method === "get"
+          ) {
+            unsubscribe?.();
+          }
         },
       });
       entryStore.makeSubscription({ unsubscribe });
@@ -550,9 +535,12 @@ export class BareClient {
     if (shouldReturnCachedData(cachePolicy)) {
       onData(entryState);
     }
+
     return {
       entryStore,
-      unsubscribe: () => unlisten(),
+      unsubscribe: () => {
+        unlisten();
+      },
     };
   }
 
@@ -575,10 +563,7 @@ export class BareClient {
   } {
     const options = normalizeOptions(convenienceOptions, this.namespaceFactory);
     const unsubscribeArray: (() => void)[] = [];
-    const key = createKey({ ...options, cursorKey });
-
-    const requestId = keyToRequestId(key);
-    const cacheKey = this.getCacheKey(key, requestId);
+    const cacheKey = createKey({ ...options, cursorKey });
     const maybeEntryStore = this.cache.get(cacheKey, cachePolicy);
 
     const shouldMakeRequest = isRequestNeeded(
@@ -593,6 +578,7 @@ export class BareClient {
     );
 
     const initialPaginatedState = paginatedEntryStore.getState();
+    const unlisten = paginatedEntryStore.addClientListener(onData);
 
     // we don't need to get full cached list every time, just on go back action in browser
     if (!useFullCache && initialPaginatedState.value?.length) {
@@ -650,6 +636,7 @@ export class BareClient {
         cachePolicy,
       });
 
+      paginatedEntryStore.makeSubscription({ unsubscribe: () => null });
       unsubscribeArray.push(result.unsubscribe);
 
       return result;
@@ -674,7 +661,6 @@ export class BareClient {
       onData(initialPaginatedState);
     }
 
-    const unlisten = paginatedEntryStore.addClientListener(onData);
     return {
       entryStore: paginatedEntryStore,
       fetchMore,
