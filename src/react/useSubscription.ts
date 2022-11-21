@@ -1,11 +1,12 @@
-import { MergeStrategy } from "./../shared/mergeStrategies";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import equal from "fast-deep-equal";
+import { MergeStrategy } from "./../shared/mergeStrategies";
 import type {
   Client,
   ConvenienceOptionsCached,
   PaginatedOptionsCached,
   Result,
+  PaginatedCachePolicy,
 } from "../client";
 import { client as defaultClient } from "../client";
 import { getInitialState } from "../cache/Entry";
@@ -35,7 +36,7 @@ export type PaginatedHookOptions<
 > = PaginatedOptionsCached<Namespace, ScopeName> &
   HookExtraOptions & {
     method?: "get" | "stream";
-    useFullCache?: boolean;
+    paginatedCachePolicy?: PaginatedCachePolicy;
   };
 
 export type PaginatedResult<T, ScopeName extends string = any> = Result<
@@ -206,7 +207,7 @@ export function usePaginatedRequest<
   keepStaleData = false,
   enabled = true,
   client: currentClient,
-  useFullCache,
+  paginatedCachePolicy = "first-page",
   body,
   ...hookOptions
 }: PaginatedHookOptions<Namespace, ScopeName>): PaginatedResult<
@@ -216,7 +217,11 @@ export function usePaginatedRequest<
   const client = currentClient || defaultClient;
 
   const cleanedCacheRef = useRef(false);
-  if (!cleanedCacheRef.current && !useFullCache && "cursorKey" in hookOptions) {
+  if (
+    !cleanedCacheRef.current &&
+    paginatedCachePolicy === "first-page" &&
+    "cursorKey" in hookOptions
+  ) {
     client.slicePaginatedCache({ ...hookOptions, body });
     cleanedCacheRef.current = true;
   }
@@ -246,12 +251,19 @@ export function usePaginatedRequest<
       fetchMore: clientFetchMore,
     } = client.cachedPaginatedRequest({
       ...options,
-      useFullCache,
+      paginatedCachePolicy,
     });
     fetchMoreRef.current = clientFetchMore;
     setFetchMoreId(current => current + 1);
     return unsubscribe;
-  }, [enabled, options, setEntry, client, useFullCache, hookOptions.method]);
+  }, [
+    enabled,
+    options,
+    setEntry,
+    client,
+    paginatedCachePolicy,
+    hookOptions.method,
+  ]);
 
   return useMemo(() => {
     const resultEntry = getResultEntry<
@@ -280,12 +292,12 @@ export function usePaginatedSubscription<
   Namespace extends string = any,
   ScopeName extends string = any
 >({
-  subscribe = true,
+  listenForUpdates = true,
   subscriptionMergeStrategy,
   cursorKey,
   ...hookOptions
 }: PaginatedHookOptions<Namespace, ScopeName> & {
-  subscribe?: boolean;
+  listenForUpdates?: boolean;
   subscriptionMergeStrategy?: MergeStrategy;
 }): Omit<PaginatedResult<T[], ScopeName>, "data"> {
   const { value: subscriptionValue, ...subscriptionEntry } = useSubscription<
@@ -303,7 +315,7 @@ export function usePaginatedSubscription<
     },
     mergeStrategy: subscriptionMergeStrategy,
     method: "subscribe",
-    enabled: subscribe && hookOptions.enabled,
+    enabled: listenForUpdates && hookOptions.enabled,
   });
 
   const { value: paginatedValue, ...paginatedEntry } = usePaginatedRequest<

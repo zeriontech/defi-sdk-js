@@ -62,9 +62,9 @@ export function createDomainHook<
     const result = useSubscription<ResponseData, Namespace, ScopeName>({
       ...options,
       namespace,
-      getId: getId || options.getId,
-      mergeStrategy: mergeStrategy || options.mergeStrategy,
-      verifyFn: verifyFn || options.verifyFn,
+      getId: options.getId || getId,
+      mergeStrategy: options.mergeStrategy || mergeStrategy,
+      verifyFn: options.verifyFn || verifyFn,
       body: useMemo(
         () => ({
           scope: [scope],
@@ -109,7 +109,7 @@ export function createPaginatedDomainHook<
     options: Omit<
       PaginatedOptions<Namespace, ScopeName>,
       "cursorKey" | "limitKey"
-    > & { subscribe?: boolean }
+    > & { listenForUpdates?: boolean }
   ): Omit<PaginatedResult<ResponseData[], ScopeName>, "data"> => {
     const [currentPayload, setCurrentPayload] = useState(payload);
 
@@ -125,12 +125,12 @@ export function createPaginatedDomainHook<
         namespace,
         cursorKey: cursorKey,
         limitKey: limitKey,
-        method: method || options.method,
-        getId: getId || options.getId,
-        mergeStrategy: mergeStrategy || options.mergeStrategy,
+        method: options.method || method,
+        getId: options.getId || getId,
+        mergeStrategy: options.mergeStrategy || mergeStrategy,
         subscriptionMergeStrategy:
-          subscriptionMergeStrategy || options.subscriptionMergeStrategy,
-        verifyFn: verifyFn || options.verifyFn,
+          options.subscriptionMergeStrategy || subscriptionMergeStrategy,
+        verifyFn: options.verifyFn || verifyFn,
         body: useMemo(
           () => ({
             scope: [scope],

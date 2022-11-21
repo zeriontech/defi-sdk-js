@@ -40,6 +40,8 @@ const subsciptionEvents: SubscriptionEvent[] = [
 
 export type Result<T, ScopeName extends string> = Entry<T, ScopeName>;
 
+export type PaginatedCachePolicy = "full" | "first-page";
+
 export interface BaseOptions<
   Namespace extends string = any,
   ScopeName extends string = any,
@@ -134,7 +136,7 @@ export type CachedPaginatedRequestOptions<
   RequestPayload = any
 > = PaginatedOptionsCached<Namespace, ScopeName, RequestPayload> & {
   onData: (data: Result<T[], ScopeName>) => void;
-  useFullCache?: boolean;
+  paginatedCachePolicy?: PaginatedCachePolicy;
 };
 
 export function subscribe<
@@ -425,7 +427,7 @@ export class BareClient {
       paginatedEntryStore.setData({
         scopeName,
         ...firstPageEntryState,
-        hasMore: (firstPageEntryState.value?.length || 0) >= rawOptions.limit,
+        hasNext: (firstPageEntryState.value?.length || 0) >= rawOptions.limit,
       });
   }
 
@@ -553,7 +555,7 @@ export class BareClient {
     mergeStrategy = mergeList,
     onData,
     cursorKey,
-    useFullCache,
+    paginatedCachePolicy = "first-page",
     method = "get",
     ...convenienceOptions
   }: CachedPaginatedRequestOptions<T, Namespace, ScopeName>): {
@@ -581,7 +583,10 @@ export class BareClient {
     const unlisten = paginatedEntryStore.addClientListener(onData);
 
     // we don't need to get full cached list every time, just on go back action in browser
-    if (!useFullCache && initialPaginatedState.value?.length) {
+    if (
+      paginatedCachePolicy === "first-page" &&
+      initialPaginatedState.value?.length
+    ) {
       this.slicePaginatedCache({
         ...options,
         cursorKey,
@@ -629,7 +634,7 @@ export class BareClient {
             meta: data.meta,
             status: data.status,
             isDone,
-            hasMore: !data.isDone || (data.value?.length || 0) >= options.limit,
+            hasNext: !data.isDone || (data.value?.length || 0) >= options.limit,
           });
         },
         body,
@@ -644,7 +649,8 @@ export class BareClient {
 
     if (
       shouldMakeRequest &&
-      (!useFullCache || !initialPaginatedState.value?.length)
+      (paginatedCachePolicy === "first-page" ||
+        !initialPaginatedState.value?.length)
     ) {
       fetchMoreWithEvent("received");
     }

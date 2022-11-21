@@ -13,7 +13,7 @@ export interface Entry<T, ScopeName extends string> {
   isLoading: boolean;
   isFetching: boolean;
   isDone: boolean;
-  hasMore?: boolean; // for paginated requests only
+  hasNext?: boolean; // for paginated requests only
 }
 
 export function isIdleStatus(status: DataStatus): boolean {
@@ -69,14 +69,14 @@ export class EntryStore<T = any, ScopeName extends string = any> extends Store<
     meta = {},
     status,
     isDone,
-    hasMore,
+    hasNext,
   }: {
     scopeName: ScopeName;
     value: T | null;
     meta?: Record<string, any>;
     status: DataStatus;
     isDone: boolean;
-    hasMore?: boolean;
+    hasNext?: boolean;
   }): void {
     const data = { [scopeName]: value } as Record<ScopeName, T>;
     this.setState(state => ({
@@ -90,7 +90,7 @@ export class EntryStore<T = any, ScopeName extends string = any> extends Store<
       isLoading: isLoadingStatus(status),
       isFetching: isFetchingStatus(status),
       isDone,
-      hasMore,
+      hasNext,
     }));
   }
 

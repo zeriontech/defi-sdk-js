@@ -49,8 +49,8 @@ export function ActionsPaginated() {
     },
     {
       limit: 6,
-      subscribe: true,
-      useFullCache: true,
+      listenForUpdates: true,
+      paginatedCachePolicy: 'full',
     }
   );
 
