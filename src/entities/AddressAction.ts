@@ -30,10 +30,8 @@ export type ActionType =
 export type ActionAsset =
   | {
       fungible: Asset | Record<string, never>;
-      nft?: undefined;
     }
   | {
-      fungible?: undefined;
       nft: NFTAsset | Record<string, never>;
     };
 

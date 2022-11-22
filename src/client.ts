@@ -40,7 +40,7 @@ const subsciptionEvents: SubscriptionEvent[] = [
 
 export type Result<T, ScopeName extends string> = Entry<T, ScopeName>;
 
-export type PaginatedCachePolicy = "full" | "first-page";
+export type PaginatedCacheMode = "full" | "first-page";
 
 export interface BaseOptions<
   Namespace extends string = any,
@@ -136,7 +136,7 @@ export type CachedPaginatedRequestOptions<
   RequestPayload = any
 > = PaginatedOptionsCached<Namespace, ScopeName, RequestPayload> & {
   onData: (data: Result<T[], ScopeName>) => void;
-  paginatedCachePolicy?: PaginatedCachePolicy;
+  paginatedCacheMode?: PaginatedCacheMode;
 };
 
 export function subscribe<
@@ -555,7 +555,7 @@ export class BareClient {
     mergeStrategy = mergeList,
     onData,
     cursorKey,
-    paginatedCachePolicy = "first-page",
+    paginatedCacheMode = "first-page",
     method = "get",
     ...convenienceOptions
   }: CachedPaginatedRequestOptions<T, Namespace, ScopeName>): {
@@ -584,7 +584,7 @@ export class BareClient {
 
     // we don't need to get full cached list every time, just on go back action in browser
     if (
-      paginatedCachePolicy === "first-page" &&
+      paginatedCacheMode === "first-page" &&
       initialPaginatedState.value?.length
     ) {
       this.slicePaginatedCache({
@@ -593,7 +593,7 @@ export class BareClient {
       });
     }
 
-    const fetchMoreWithEvent = (event: SubscriptionEvent) => {
+    const makeCachedSubscribe = (mode: "first-page" | "not-first-page") => {
       const paginatedEntryState = paginatedEntryStore.getState();
       const prevData = paginatedEntryState.value;
 
@@ -602,7 +602,7 @@ export class BareClient {
         payload: {
           ...options.body.payload,
           [cursorKey]:
-            event === "received"
+            mode === "first-page"
               ? undefined
               : paginatedEntryState.meta?.next_cursor,
           [options.limitKey]: options.limit,
@@ -618,8 +618,11 @@ export class BareClient {
           const isDone =
             method === "get" || (data.isDone && method === "stream");
 
+          const event = mode === "first-page" ? "received" : "appended";
+
           const merged =
-            (event !== "received" || isDone || !prevData?.length) && data.value
+            (mode === "not-first-page" || isDone || !prevData?.length) &&
+            data.value
               ? mergeStrategy({
                   event: event as "appended", // looks like a ts bug
                   prevData,
@@ -649,10 +652,10 @@ export class BareClient {
 
     if (
       shouldMakeRequest &&
-      (paginatedCachePolicy === "first-page" ||
+      (paginatedCacheMode === "first-page" ||
         !initialPaginatedState.value?.length)
     ) {
-      fetchMoreWithEvent("received");
+      makeCachedSubscribe("first-page");
     }
 
     const fetchMore = () => {
@@ -660,7 +663,7 @@ export class BareClient {
       if (paginatedEntryState.isLoading || paginatedEntryState.isFetching) {
         return;
       }
-      return fetchMoreWithEvent("appended");
+      return makeCachedSubscribe("not-first-page");
     };
 
     if (shouldReturnCachedData(cachePolicy)) {

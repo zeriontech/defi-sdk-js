@@ -6,7 +6,7 @@ import type {
   ConvenienceOptionsCached,
   PaginatedOptionsCached,
   Result,
-  PaginatedCachePolicy,
+  PaginatedCacheMode,
 } from "../client";
 import { client as defaultClient } from "../client";
 import { getInitialState } from "../cache/Entry";
@@ -36,7 +36,7 @@ export type PaginatedHookOptions<
 > = PaginatedOptionsCached<Namespace, ScopeName> &
   HookExtraOptions & {
     method?: "get" | "stream";
-    paginatedCachePolicy?: PaginatedCachePolicy;
+    paginatedCacheMode?: PaginatedCacheMode;
   };
 
 export type PaginatedResult<T, ScopeName extends string = any> = Result<
@@ -207,7 +207,7 @@ export function usePaginatedRequest<
   keepStaleData = false,
   enabled = true,
   client: currentClient,
-  paginatedCachePolicy = "first-page",
+  paginatedCacheMode = "first-page",
   body,
   ...hookOptions
 }: PaginatedHookOptions<Namespace, ScopeName>): PaginatedResult<
@@ -219,7 +219,7 @@ export function usePaginatedRequest<
   const cleanedCacheRef = useRef(false);
   if (
     !cleanedCacheRef.current &&
-    paginatedCachePolicy === "first-page" &&
+    paginatedCacheMode === "first-page" &&
     "cursorKey" in hookOptions
   ) {
     client.slicePaginatedCache({ ...hookOptions, body });
@@ -251,7 +251,7 @@ export function usePaginatedRequest<
       fetchMore: clientFetchMore,
     } = client.cachedPaginatedRequest({
       ...options,
-      paginatedCachePolicy,
+      paginatedCacheMode,
     });
     fetchMoreRef.current = clientFetchMore;
     setFetchMoreId(current => current + 1);
@@ -261,7 +261,7 @@ export function usePaginatedRequest<
     options,
     setEntry,
     client,
-    paginatedCachePolicy,
+    paginatedCacheMode,
     hookOptions.method,
   ]);
 
