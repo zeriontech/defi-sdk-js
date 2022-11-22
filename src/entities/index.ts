@@ -24,6 +24,7 @@ export * from "./Tokenlist";
 export * from "./Transaction";
 export * from "./TransactionChange";
 export * from "./TransactionStatus";
+export * from "./AddressAction";
 
 export * from "./ProtocolInfo/ProtocolInfo";
 export * from "./ProtocolInfo/Deposit";
