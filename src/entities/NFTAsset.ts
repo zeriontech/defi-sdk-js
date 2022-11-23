@@ -1,4 +1,4 @@
-import type { NFTCollection } from "./NFTCollection";
+import type { NFTCollection, NFTCollectionInfo } from "./NFTCollection";
 
 interface NFTContent {
   url: string | null;
@@ -20,7 +20,9 @@ export interface NFTAsset {
   };
   icon_url: string | null;
   is_verified: boolean;
-  collection: NFTCollection;
+  collection: NFTCollection | null; // deprecated
+  collection_info: NFTCollectionInfo | null;
+  tags: string | null;
   floor_price: number;
   last_price: number;
 }
