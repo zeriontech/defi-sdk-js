@@ -1,5 +1,5 @@
 import type { NFTAsset } from "./NFTAsset";
-import { NFTCollection } from "./NFTCollection";
+import type { NFTCollection, NFTCollectionInfo } from "./NFTCollection";
 
 interface NFTAttribute {
   key: string;
@@ -13,7 +13,8 @@ interface Resource {
 
 export interface NFTInfo {
   asset: NFTAsset;
-  collection: NFTCollection;
+  collection: NFTCollection | null; // deprecated
+  collection_info: NFTCollectionInfo | null;
   description: string | null;
   attributes: NFTAttribute[];
   relevant_urls: null | Resource[];

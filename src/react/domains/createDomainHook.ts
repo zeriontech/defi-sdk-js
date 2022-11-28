@@ -80,7 +80,7 @@ export function createDomainHook<
 
 export function createPaginatedDomainHook<
   RequestPayload,
-  ResponseData extends { id: string },
+  ResponseData,
   Namespace extends string,
   ScopeName extends string
 >({
