@@ -328,8 +328,8 @@ export function usePaginatedSubscription<
     if (hookOptions.getId) {
       return hookOptions.getId?.(item);
     }
-    if ("id" in item) {
-      return (item as { id: string }).id;
+    if ("id" in (item as any)) {
+      return (item as any).id;
     }
     throw new Error(
       "Request params should contain getId, because response items don't have id field"
