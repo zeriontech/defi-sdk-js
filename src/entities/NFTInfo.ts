@@ -13,7 +13,7 @@ interface Resource {
 
 export interface NFTInfo {
   asset: NFTAsset;
-  collection: NFTCollection | null; // deprecated
+  collection: NFTCollection | null; // deprecated - use collection_info instead
   collection_info: NFTCollectionInfo | null;
   description: string | null;
   attributes: NFTAttribute[];

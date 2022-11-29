@@ -20,7 +20,7 @@ export interface NFTAsset {
   };
   icon_url: string | null;
   is_verified: boolean;
-  collection: NFTCollection | null; // deprecated
+  collection: NFTCollection | null; // deprecated - use collection_info instead
   collection_info: NFTCollectionInfo | null;
   tags: string | null;
   floor_price: number;
