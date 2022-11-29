@@ -19,7 +19,7 @@ export function Actions() {
           actions_search_query: "",
           currency: "usd",
           address: "0x42b9df65b219b3dd36ff330a4dd8f327a6ada990",
-          actions_limit: 10,
+          actions_limit: 20,
         },
       };
     }, []),
@@ -48,7 +48,7 @@ export function ActionsPaginated() {
       address: "0x42b9df65b219b3dd36ff330a4dd8f327a6ada990",
     },
     {
-      limit: 6,
+      limit: 20,
       listenForUpdates: true,
       paginatedCacheMode: 'full',
     }

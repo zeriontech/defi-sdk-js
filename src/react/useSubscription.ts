@@ -288,7 +288,7 @@ export function usePaginatedRequest<
 }
 
 export function usePaginatedSubscription<
-  T extends { id: string },
+  T,
   Namespace extends string = any,
   ScopeName extends string = any
 >({
@@ -324,13 +324,21 @@ export function usePaginatedSubscription<
     ScopeName
   >({ ...hookOptions, cursorKey });
 
-  const getIdRef = useRef<(item: T) => string | number>(
-    item => hookOptions.getId?.(item) || item.id
-  );
+  const getIdRef = useRef<(item: T) => string | number>(item => {
+    if (hookOptions.getId) {
+      return hookOptions.getId?.(item);
+    }
+    if ("id" in item) {
+      return (item as { id: string }).id;
+    }
+    throw new Error(
+      "Request params should contain getId, because response items don't have id field"
+    );
+  });
 
   const value = useMemo(() => {
     const paginatedIdSet = new Set(
-      paginatedValue?.map(item => getIdRef.current(item) || item.id)
+      paginatedValue?.map(item => getIdRef.current(item))
     );
     const filteredSubscriptionValue = subscriptionValue?.filter(
       item => !paginatedIdSet.has(getIdRef.current(item))
