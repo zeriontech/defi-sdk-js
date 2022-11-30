@@ -20,6 +20,7 @@ import { VStack } from "./VStack";
 import { CustomCache } from "./custom-cache/CustomCache";
 import "./global.module.css";
 import { Actions, ActionsPaginated } from "./Actions";
+import { NFTCollections, NFTCollectionsPaginated } from "./NFTCollections";
 
 function getQueryForBackendEnv() {
   const params = new URLSearchParams(window.location.search);
@@ -199,6 +200,8 @@ function App() {
   const [show6, toggle6] = useReducer(x => !x, false);
   const [show7, toggle7] = useReducer(x => !x, false);
   const [show8, toggle8] = useReducer(x => !x, false);
+  const [show9, toggle9] = useReducer(x => !x, false);
+  const [show10, toggle10] = useReducer(x => !x, false);
   const [showHelpers, toggleHelpers] = useReducer(x => !x, false);
   const [currency, setCurrency] = useState("usd");
   return (
@@ -248,6 +251,16 @@ function App() {
         <button onClick={toggle8}>toggle</button>
         <br />
         {show8 ? <ActionsPaginated /> : null}
+      </div>
+      <div>
+        <button onClick={toggle9}>toggle</button>
+        <br />
+        {show9 ? <NFTCollections /> : null}
+      </div>
+      <div>
+        <button onClick={toggle10}>toggle</button>
+        <br />
+        {show10 ? <NFTCollectionsPaginated /> : null}
       </div>
 
       <h3>Helpers:</h3>

@@ -427,7 +427,9 @@ export class BareClient {
       paginatedEntryStore.setData({
         scopeName,
         ...firstPageEntryState,
-        hasNext: (firstPageEntryState.value?.length || 0) >= rawOptions.limit,
+        hasNext:
+          firstPageEntryState.isDone &&
+          (firstPageEntryState.value?.length || 0) >= rawOptions.limit,
       });
   }
 
@@ -652,15 +654,14 @@ export class BareClient {
 
     if (
       shouldMakeRequest &&
-      (paginatedCacheMode === "first-page" ||
-        !initialPaginatedState.value?.length)
+      (paginatedCacheMode === "first-page" || !initialPaginatedState.isDone)
     ) {
       makeCachedSubscribe("first-page");
     }
 
     const fetchMore = () => {
       const paginatedEntryState = paginatedEntryStore.getState();
-      if (paginatedEntryState.isLoading || paginatedEntryState.isFetching) {
+      if (!paginatedEntryState.isDone) {
         return;
       }
       return makeCachedSubscribe("not-first-page");

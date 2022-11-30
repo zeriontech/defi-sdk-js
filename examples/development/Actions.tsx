@@ -48,7 +48,7 @@ export function ActionsPaginated() {
       address: "0x42b9df65b219b3dd36ff330a4dd8f327a6ada990",
     },
     {
-      limit: 20,
+      limit: 30,
       listenForUpdates: true,
       paginatedCacheMode: 'full',
     }
