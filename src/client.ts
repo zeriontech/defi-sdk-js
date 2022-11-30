@@ -40,7 +40,7 @@ const subsciptionEvents: SubscriptionEvent[] = [
 
 export type Result<T, ScopeName extends string> = Entry<T, ScopeName>;
 
-export type PaginatedCacheMode = "full" | "first-page";
+export type PaginatedCacheMode = "all-pages" | "first-page";
 
 export interface BaseOptions<
   Namespace extends string = any,
@@ -652,15 +652,14 @@ export class BareClient {
 
     if (
       shouldMakeRequest &&
-      (paginatedCacheMode === "first-page" ||
-        !initialPaginatedState.value?.length)
+      (paginatedCacheMode === "first-page" || !initialPaginatedState.isDone)
     ) {
       makeCachedSubscribe("first-page");
     }
 
     const fetchMore = () => {
       const paginatedEntryState = paginatedEntryStore.getState();
-      if (paginatedEntryState.isLoading || paginatedEntryState.isFetching) {
+      if (!paginatedEntryState.isDone) {
         return;
       }
       return makeCachedSubscribe("not-first-page");
