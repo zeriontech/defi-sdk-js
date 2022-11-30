@@ -50,7 +50,7 @@ export function ActionsPaginated() {
     {
       limit: 30,
       listenForUpdates: true,
-      paginatedCacheMode: 'full',
+      paginatedCacheMode: "all-pages",
     }
   );
 

@@ -40,7 +40,7 @@ const subsciptionEvents: SubscriptionEvent[] = [
 
 export type Result<T, ScopeName extends string> = Entry<T, ScopeName>;
 
-export type PaginatedCacheMode = "full" | "first-page";
+export type PaginatedCacheMode = "all-pages" | "first-page";
 
 export interface BaseOptions<
   Namespace extends string = any,
@@ -427,9 +427,7 @@ export class BareClient {
       paginatedEntryStore.setData({
         scopeName,
         ...firstPageEntryState,
-        hasNext:
-          firstPageEntryState.isDone &&
-          (firstPageEntryState.value?.length || 0) >= rawOptions.limit,
+        hasNext: (firstPageEntryState.value?.length || 0) >= rawOptions.limit,
       });
   }
 
