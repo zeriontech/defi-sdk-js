@@ -11,7 +11,12 @@ import type { Entry } from "./cache/Entry";
 import { CachePolicy } from "./cache/CachePolicy";
 import { isRequestNeeded } from "./cache/isRequestNeeded";
 import { SubscriptionEvent } from "./requests/SubscriptionEvent";
-import { mergeDict, mergeList, MergeStrategy } from "./shared/mergeStrategies";
+import {
+  defaultGetHasNext,
+  mergeDict,
+  mergeList,
+  MergeStrategy,
+} from "./shared/mergeStrategies";
 import { verifyByRequestId } from "./requests/verifyByRequestId";
 import { shouldReturnCachedData } from "./cache/shouldReturnCachedData";
 import { defaultCachePolicy } from "./cache/defaultCachePolicy";
@@ -137,6 +142,7 @@ export type CachedPaginatedRequestOptions<
 > = PaginatedOptionsCached<Namespace, ScopeName, RequestPayload> & {
   onData: (data: Result<T[], ScopeName>) => void;
   paginatedCacheMode?: PaginatedCacheMode;
+  getHasNext?(value: T[] | null, limit: number): boolean;
 };
 
 export function subscribe<
@@ -394,7 +400,9 @@ export class BareClient {
   >({
     cursorKey,
     ...rawOptions
-  }: PaginatedOptionsCached<Namespace, ScopeName, RequestPayload>): void {
+  }: PaginatedOptionsCached<Namespace, ScopeName, RequestPayload> & {
+    getHasNext(value: T[] | null, limit: number): boolean;
+  }): void {
     const paginatedEntryStore = this.getCacheStore<
       T[],
       Namespace,
@@ -427,7 +435,10 @@ export class BareClient {
       paginatedEntryStore.setData({
         scopeName,
         ...firstPageEntryState,
-        hasNext: (firstPageEntryState.value?.length || 0) >= rawOptions.limit,
+        hasNext: rawOptions.getHasNext(
+          firstPageEntryState.value,
+          rawOptions.limit
+        ),
       });
   }
 
@@ -493,10 +504,7 @@ export class BareClient {
             entryStore.setData({
               scopeName: scope,
               value: entryState.value,
-              meta: {
-                ...meta,
-                next_cursor: entryState.meta?.next_cursor,
-              },
+              meta,
               status: DataStatus.ok,
               isDone: true,
             });
@@ -557,12 +565,14 @@ export class BareClient {
     cursorKey,
     paginatedCacheMode = "first-page",
     method = "get",
-    ...convenienceOptions
+    getHasNext = defaultGetHasNext,
+    ...restOptions
   }: CachedPaginatedRequestOptions<T, Namespace, ScopeName>): {
     entryStore: EntryStore<T[]>;
     fetchMore(): void;
     unsubscribe: Unsubscribe;
   } {
+    const convenienceOptions = { getHasNext, ...restOptions };
     const options = normalizeOptions(convenienceOptions, this.namespaceFactory);
     const unsubscribeArray: (() => void)[] = [];
     const cacheKey = createKey({ ...options, cursorKey });
@@ -637,7 +647,7 @@ export class BareClient {
             meta: data.meta,
             status: data.status,
             isDone,
-            hasNext: !data.isDone || (data.value?.length || 0) >= options.limit,
+            hasNext: !data.isDone || getHasNext(data.value, options.limit),
           });
         },
         body,
