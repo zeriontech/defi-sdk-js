@@ -40,11 +40,6 @@ function received<T>(data: T) {
 const defaultGetId = <T extends any>(x: T): string | number =>
   "id" in (x as any) ? (x as any).id : x;
 
-export const defaultGetHasNext = <T extends any>(
-  value: T[],
-  limit: number
-): boolean => (value?.length || 0) >= limit;
-
 function changed<T>(
   prevData: Data<T> | null,
   newData: T[],

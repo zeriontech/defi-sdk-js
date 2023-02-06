@@ -11,12 +11,7 @@ import type { Entry } from "./cache/Entry";
 import { CachePolicy } from "./cache/CachePolicy";
 import { isRequestNeeded } from "./cache/isRequestNeeded";
 import { SubscriptionEvent } from "./requests/SubscriptionEvent";
-import {
-  defaultGetHasNext,
-  mergeDict,
-  mergeList,
-  MergeStrategy,
-} from "./shared/mergeStrategies";
+import { mergeDict, mergeList, MergeStrategy } from "./shared/mergeStrategies";
 import { verifyByRequestId } from "./requests/verifyByRequestId";
 import { shouldReturnCachedData } from "./cache/shouldReturnCachedData";
 import { defaultCachePolicy } from "./cache/defaultCachePolicy";
@@ -142,7 +137,10 @@ export type CachedPaginatedRequestOptions<
 > = PaginatedOptionsCached<Namespace, ScopeName, RequestPayload> & {
   onData: (data: Result<T[], ScopeName>) => void;
   paginatedCacheMode?: PaginatedCacheMode;
-  getHasNext?(value: T[] | null, limit: number): boolean;
+  getHasNext?(
+    data: Result<T[], ScopeName>,
+    options: PaginatedOptionsCached<Namespace, ScopeName>
+  ): boolean;
 };
 
 export function subscribe<
@@ -261,6 +259,15 @@ function getOrCreateEntry(
   }
   throw new Error("Unexpected internal error: newly created entry not found");
 }
+
+export const defaultGetHasNext = <
+  T,
+  Namespace extends string,
+  ScopeName extends string
+>(
+  data: Result<T[], ScopeName>,
+  options: PaginatedOptionsCached<Namespace, ScopeName>
+): boolean => (data.value?.length || 0) >= options.limit;
 
 export class BareClient {
   url: string | null;
@@ -401,7 +408,10 @@ export class BareClient {
     cursorKey,
     ...rawOptions
   }: PaginatedOptionsCached<Namespace, ScopeName, RequestPayload> & {
-    getHasNext(value: T[] | null, limit: number): boolean;
+    getHasNext(
+      data: Result<T[], ScopeName>,
+      options: PaginatedOptionsCached<Namespace, ScopeName>
+    ): boolean;
   }): void {
     const paginatedEntryStore = this.getCacheStore<
       T[],
@@ -435,10 +445,10 @@ export class BareClient {
       paginatedEntryStore.setData({
         scopeName,
         ...firstPageEntryState,
-        hasNext: rawOptions.getHasNext(
-          firstPageEntryState.value,
-          rawOptions.limit
-        ),
+        hasNext: rawOptions.getHasNext(firstPageEntryState, {
+          ...rawOptions,
+          cursorKey,
+        }),
       });
   }
 
@@ -647,7 +657,8 @@ export class BareClient {
             meta: data.meta,
             status: data.status,
             isDone,
-            hasNext: !data.isDone || getHasNext(data.value, options.limit),
+            hasNext:
+              !data.isDone || getHasNext(data, { ...options, cursorKey }),
           });
         },
         body,
