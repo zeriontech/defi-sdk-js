@@ -21,9 +21,10 @@ export type Options<Namespace extends string, ScopeName extends string> = Omit<
 
 export type PaginatedOptions<
   Namespace extends string,
-  ScopeName extends string
+  ScopeName extends string,
+  T
 > = Omit<
-  PaginatedHookOptions<Namespace, ScopeName>,
+  PaginatedHookOptions<Namespace, ScopeName, T>,
   "body" | "socketNamespace"
 > & {
   subscriptionMergeStrategy?: MergeStrategy;
@@ -107,7 +108,7 @@ export function createPaginatedDomainHook<
   return (
     payload: RequestPayload,
     options: Omit<
-      PaginatedOptions<Namespace, ScopeName>,
+      PaginatedOptions<Namespace, ScopeName, ResponseData>,
       "cursorKey" | "limitKey"
     > & { listenForUpdates?: boolean }
   ): Omit<PaginatedResult<ResponseData[], ScopeName>, "data"> => {

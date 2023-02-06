@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import equal from "fast-deep-equal";
 import { MergeStrategy } from "./../shared/mergeStrategies";
-import type {
+import {
   Client,
   ConvenienceOptionsCached,
   PaginatedOptionsCached,
   Result,
   PaginatedCacheMode,
+  defaultGetHasNext,
 } from "../client";
 import { client as defaultClient } from "../client";
 import { getInitialState } from "../cache/Entry";
@@ -32,11 +33,16 @@ export type HookOptions<
 
 export type PaginatedHookOptions<
   Namespace extends string = any,
-  ScopeName extends string = any
+  ScopeName extends string = any,
+  T = unknown
 > = PaginatedOptionsCached<Namespace, ScopeName> &
   HookExtraOptions & {
     method?: "get" | "stream";
     paginatedCacheMode?: PaginatedCacheMode;
+    getHasNext?(
+      data: Result<T[], ScopeName>,
+      options: PaginatedOptionsCached<Namespace, ScopeName>
+    ): boolean;
   };
 
 export type PaginatedResult<T, ScopeName extends string = any> = Result<
@@ -209,11 +215,13 @@ export function usePaginatedRequest<
   client: currentClient,
   paginatedCacheMode = "first-page",
   body,
-  ...hookOptions
-}: PaginatedHookOptions<Namespace, ScopeName>): PaginatedResult<
+  getHasNext = defaultGetHasNext,
+  ...restOptions
+}: PaginatedHookOptions<Namespace, ScopeName, T>): PaginatedResult<
   T[],
   ScopeName
 > {
+  const hookOptions = { getHasNext, ...restOptions };
   const client = currentClient || defaultClient;
 
   const cleanedCacheRef = useRef(false);
@@ -296,7 +304,7 @@ export function usePaginatedSubscription<
   subscriptionMergeStrategy,
   cursorKey,
   ...hookOptions
-}: PaginatedHookOptions<Namespace, ScopeName> & {
+}: PaginatedHookOptions<Namespace, ScopeName, T> & {
   listenForUpdates?: boolean;
   subscriptionMergeStrategy?: MergeStrategy;
 }): Omit<PaginatedResult<T[], ScopeName>, "data"> {

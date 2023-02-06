@@ -137,6 +137,10 @@ export type CachedPaginatedRequestOptions<
 > = PaginatedOptionsCached<Namespace, ScopeName, RequestPayload> & {
   onData: (data: Result<T[], ScopeName>) => void;
   paginatedCacheMode?: PaginatedCacheMode;
+  getHasNext?(
+    data: Result<T[], ScopeName>,
+    options: PaginatedOptionsCached<Namespace, ScopeName>
+  ): boolean;
 };
 
 export function subscribe<
@@ -255,6 +259,15 @@ function getOrCreateEntry(
   }
   throw new Error("Unexpected internal error: newly created entry not found");
 }
+
+export const defaultGetHasNext = <
+  T,
+  Namespace extends string,
+  ScopeName extends string
+>(
+  data: Result<T[], ScopeName>,
+  options: PaginatedOptionsCached<Namespace, ScopeName>
+): boolean => (data.value?.length || 0) >= options.limit;
 
 export class BareClient {
   url: string | null;
@@ -394,7 +407,12 @@ export class BareClient {
   >({
     cursorKey,
     ...rawOptions
-  }: PaginatedOptionsCached<Namespace, ScopeName, RequestPayload>): void {
+  }: PaginatedOptionsCached<Namespace, ScopeName, RequestPayload> & {
+    getHasNext(
+      data: Result<T[], ScopeName>,
+      options: PaginatedOptionsCached<Namespace, ScopeName>
+    ): boolean;
+  }): void {
     const paginatedEntryStore = this.getCacheStore<
       T[],
       Namespace,
@@ -427,7 +445,10 @@ export class BareClient {
       paginatedEntryStore.setData({
         scopeName,
         ...firstPageEntryState,
-        hasNext: (firstPageEntryState.value?.length || 0) >= rawOptions.limit,
+        hasNext: rawOptions.getHasNext(firstPageEntryState, {
+          ...rawOptions,
+          cursorKey,
+        }),
       });
   }
 
@@ -493,10 +514,7 @@ export class BareClient {
             entryStore.setData({
               scopeName: scope,
               value: entryState.value,
-              meta: {
-                ...meta,
-                next_cursor: entryState.meta?.next_cursor,
-              },
+              meta,
               status: DataStatus.ok,
               isDone: true,
             });
@@ -557,12 +575,14 @@ export class BareClient {
     cursorKey,
     paginatedCacheMode = "first-page",
     method = "get",
-    ...convenienceOptions
+    getHasNext = defaultGetHasNext,
+    ...restOptions
   }: CachedPaginatedRequestOptions<T, Namespace, ScopeName>): {
     entryStore: EntryStore<T[]>;
     fetchMore(): void;
     unsubscribe: Unsubscribe;
   } {
+    const convenienceOptions = { getHasNext, ...restOptions };
     const options = normalizeOptions(convenienceOptions, this.namespaceFactory);
     const unsubscribeArray: (() => void)[] = [];
     const cacheKey = createKey({ ...options, cursorKey });
@@ -637,7 +657,8 @@ export class BareClient {
             meta: data.meta,
             status: data.status,
             isDone,
-            hasNext: !data.isDone || (data.value?.length || 0) >= options.limit,
+            hasNext:
+              !data.isDone || getHasNext(data, { ...options, cursorKey }),
           });
         },
         body,
