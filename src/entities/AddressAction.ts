@@ -25,7 +25,8 @@ export type ActionType =
   | "stake"
   | "unstake"
   | "claim"
-  | "mint";
+  | "mint"
+  | "burn";
 
 export type ActionAsset =
   | {
