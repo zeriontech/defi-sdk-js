@@ -2,7 +2,7 @@ import { Asset } from "./Asset";
 import { NFTAsset } from "./NFTAsset";
 import { TransactionStatus } from "./TransactionStatus";
 
-export type TransactionAssetFilter = "token" | "nft" | "all";
+export type TransactionAssetFilter = "fungible" | "nft" | "all";
 export type TransactionTypeFilter =
   | "mint"
   | "send"
