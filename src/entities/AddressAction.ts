@@ -67,6 +67,7 @@ export interface AddressAction {
   label: {
     type: "to" | "from" | "application" | "contract";
     value: string;
+    icon_url?: string;
     display_value: {
       wallet_address?: string;
       contract_address?: string;
