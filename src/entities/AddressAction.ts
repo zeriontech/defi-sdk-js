@@ -38,7 +38,7 @@ export type ActionAsset =
 
 export interface ActionTransfer {
   asset: ActionAsset;
-  quantity: number;
+  quantity: string;
   price: number | null;
   recipient?: string | null;
   sender?: string | null;
@@ -60,7 +60,7 @@ export interface AddressAction {
     nonce: number;
     fee: {
       asset: ActionAsset;
-      quantity: number;
+      quantity: string;
       price: number | null;
     } | null;
   };
