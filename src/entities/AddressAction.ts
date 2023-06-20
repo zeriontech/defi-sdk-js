@@ -2,13 +2,8 @@ import { Asset } from "./Asset";
 import { NFTAsset } from "./NFTAsset";
 import { TransactionStatus } from "./TransactionStatus";
 
-export type TransactionAssetFilter = "fungible" | "nft" | "all";
-export type TransactionTypeFilter =
-  | "mint"
-  | "send"
-  | "receive"
-  | "trade"
-  | "others";
+export type ActionAssetFilter = "fungible" | "nft" | "all";
+export type ActionTypeFilter = "mint" | "send" | "receive" | "trade" | "others";
 
 export type ActionType =
   | "send"
@@ -78,6 +73,7 @@ export interface AddressAction {
     transfers?: ActionTransfers;
     single_asset?: {
       asset: ActionAsset;
+      quantity: string;
     };
   } | null;
 }

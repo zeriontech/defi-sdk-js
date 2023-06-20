@@ -1,15 +1,15 @@
 import type {
   AddressAction,
-  TransactionAssetFilter,
-  TransactionTypeFilter,
+  ActionAssetFilter,
+  ActionType,
 } from "./../../entities/AddressAction";
 import type { AddressParams } from "../../domains/AddressParams";
 import { createPaginatedDomainHook } from "./createDomainHook";
 
 type RequestPayload = AddressParams & {
   currency: string;
-  actions_action_types?: TransactionTypeFilter[];
-  actions_asset_types?: TransactionAssetFilter[];
+  actions_action_types?: ActionType[];
+  actions_asset_types?: ActionAssetFilter[];
   actions_search_query?: string;
   actions_fungible_ids?: string[];
   actions_chains?: string[];
