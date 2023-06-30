@@ -662,7 +662,12 @@ export class BareClient {
           });
         },
         body,
-        cachePolicy,
+        // We don't need to use cache for following pages because it will cause page jumps
+        cachePolicy:
+          mode === "not-first-page" &&
+          (cachePolicy === "cache-and-network" || cachePolicy === "cache-first")
+            ? "network-only"
+            : cachePolicy,
       });
 
       paginatedEntryStore.makeSubscription({ unsubscribe: () => null });
