@@ -11,7 +11,7 @@ export type ActionType =
   | "trade"
   | "approve"
   | "execute"
-  | "deployment"
+  | "deploy"
   | "cancel"
   | "deposit"
   | "withdraw"
