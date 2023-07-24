@@ -1,5 +1,6 @@
 import { Asset } from "./Asset";
 import { NFTAsset } from "./NFTAsset";
+import { NFTCollection } from "./NFTCollection";
 import { TransactionStatus } from "./TransactionStatus";
 
 export type ActionAssetFilter = "fungible" | "nft" | "all";
@@ -44,6 +45,10 @@ export interface ActionTransfers {
   incoming?: ActionTransfer[];
 }
 
+interface ApprovalNFTCollection extends NFTCollection {
+  id: string;
+}
+
 export interface AddressAction {
   id: string;
   datetime: string;
@@ -75,5 +80,6 @@ export interface AddressAction {
       asset: ActionAsset;
       quantity: string;
     };
+    collection?: ApprovalNFTCollection;
   } | null;
 }
