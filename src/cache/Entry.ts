@@ -1,6 +1,7 @@
 import { Store } from "store-unit";
 import { Unsubscribe } from "../shared/Unsubscribe";
 import { DataStatus } from "./DataStatus";
+import type { ErrorPayload } from "../requests/Response";
 
 export interface Entry<T, ScopeName extends string> {
   data: Record<ScopeName, T> | null;
@@ -13,6 +14,8 @@ export interface Entry<T, ScopeName extends string> {
   isLoading: boolean;
   isFetching: boolean;
   isDone: boolean;
+  isError: boolean;
+  error: ErrorPayload | null;
   hasNext?: boolean; // for paginated requests only
 }
 
@@ -41,6 +44,8 @@ export const getInitialState = <T, ScopeName extends string>(
   isLoading: isLoadingStatus(initialStatus ?? DataStatus.noRequests),
   isFetching: isFetchingStatus(initialStatus ?? DataStatus.noRequests),
   isDone: false,
+  isError: false,
+  error: null,
 });
 
 interface Subscription {
@@ -69,10 +74,12 @@ export class EntryStore<T = any, ScopeName extends string = any> extends Store<
     meta = {},
     status,
     isDone,
+    error,
     hasNext,
   }: {
     scopeName: ScopeName;
     value: T | null;
+    error: ErrorPayload | null;
     meta?: Record<string, any>;
     status: DataStatus;
     isDone: boolean;
@@ -89,6 +96,8 @@ export class EntryStore<T = any, ScopeName extends string = any> extends Store<
       isStale: false,
       isLoading: isLoadingStatus(status),
       isFetching: isFetchingStatus(status),
+      isError: Boolean(error),
+      error,
       isDone,
       hasNext,
     }));

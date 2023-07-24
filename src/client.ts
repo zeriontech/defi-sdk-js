@@ -1,6 +1,6 @@
 import type io from "socket.io-client";
 import { nanoid } from "nanoid";
-import type { Response } from "./requests/Response";
+import type { ErrorResponse, Response } from "./requests/Response";
 import type { Request } from "./requests/Request";
 import type { ResponsePayload } from "./requests/ResponsePayload";
 import type { Unsubscribe } from "./shared/Unsubscribe";
@@ -58,6 +58,8 @@ type MessageHandler<T, ScopeName extends string> = (
   data: Response<ResponsePayload<T, ScopeName>>
 ) => void;
 
+type ErrorMessageHandler = (event: string, data: ErrorResponse) => void;
+
 export interface Options<
   T,
   Namespace extends string = any,
@@ -66,6 +68,7 @@ export interface Options<
 > extends BaseOptions<Namespace, ScopeName, RequestPayload> {
   onMessage: MessageHandler<T, ScopeName>;
   onAnyMessage?: MessageHandler<T, ScopeName>;
+  onError?: ErrorMessageHandler;
 }
 
 type SocketNamespaceOptions<Namespace extends string> = {
@@ -93,6 +96,7 @@ export type ClientSubscribeOptions<
     event: SubscriptionEvent,
     data: Response<ResponsePayload<T, ScopeName>>
   ) => void;
+  onError?: ErrorMessageHandler;
 };
 
 type CachedOptions<ScopeName extends string> = {
@@ -127,6 +131,7 @@ export type CachedRequestOptions<
   RequestPayload = any
 > = ConvenienceOptionsCached<Namespace, ScopeName, RequestPayload> & {
   onData: (data: Result<T, ScopeName>) => void;
+  onError?: ErrorMessageHandler;
 };
 
 export type CachedPaginatedRequestOptions<
@@ -136,12 +141,17 @@ export type CachedPaginatedRequestOptions<
   RequestPayload = any
 > = PaginatedOptionsCached<Namespace, ScopeName, RequestPayload> & {
   onData: (data: Result<T[], ScopeName>) => void;
+  onError?: ErrorMessageHandler;
   paginatedCacheMode?: PaginatedCacheMode;
   getHasNext?(
     data: Result<T[], ScopeName>,
     options: PaginatedOptionsCached<Namespace, ScopeName>
   ): boolean;
 };
+
+function verifyError(response: any) {
+  return response?.meta?.status === "error";
+}
 
 export function subscribe<
   R,
@@ -153,6 +163,7 @@ export function subscribe<
   body,
   onMessage,
   onAnyMessage,
+  onError,
   verifyFn = verify,
 }: Options<R, Namespace, ScopeName>): Unsubscribe {
   const { socket, namespace } = socketNamespace;
@@ -163,11 +174,21 @@ export function subscribe<
   const handleMessage = (event: SubscriptionEvent) => (
     response: Response<ResponsePayload<R, ScopeName>>
   ) => {
+    if (onError && verifyError(response)) {
+      onError(event, response as ErrorResponse);
+      return;
+    }
     if (verifyFn(body, response)) {
       onMessage(event, response);
     }
     if (onAnyMessage) {
       onAnyMessage(event, response);
+    }
+  };
+
+  const handleAcknowledge = (event: string, errorResponse: ErrorResponse) => {
+    if (onError && verifyError(errorResponse)) {
+      onError(event, errorResponse);
     }
   };
 
@@ -179,7 +200,7 @@ export function subscribe<
     listeners.push(() => socket.off(`${event} ${namespace} ${model}`, handler));
   });
 
-  socket.emit(method, body);
+  socket.emit(method, body, handleAcknowledge);
 
   return () => {
     listeners.forEach(l => l());
@@ -517,6 +538,7 @@ export class BareClient {
               meta,
               status: DataStatus.ok,
               isDone: true,
+              error: null,
             });
             return;
           }
@@ -540,6 +562,7 @@ export class BareClient {
             meta,
             status,
             isDone: options.method !== "stream",
+            error: null,
           });
           if (
             (event === "done" && options.method === "stream") ||
@@ -547,6 +570,24 @@ export class BareClient {
           ) {
             unsubscribe?.();
           }
+        },
+        onError: (_event, data) => {
+          const { payload, meta } = data;
+          const scope = options.body.scope[0];
+          if (!scope) {
+            return;
+          }
+          const entryState = entryStore.getState();
+          const prevData = entryState.value;
+          entryStore.setData({
+            scopeName: scope,
+            value: prevData || null,
+            meta,
+            status: DataStatus.error,
+            isDone: true,
+            error: payload,
+          });
+          unsubscribe?.();
         },
       });
       entryStore.makeSubscription({ unsubscribe });
@@ -657,8 +698,26 @@ export class BareClient {
             meta: data.meta,
             status: data.status,
             isDone,
+            error: null,
             hasNext:
               !data.isDone || getHasNext(data, { ...options, cursorKey }),
+          });
+        },
+        onError: (_event, data) => {
+          const { payload, meta } = data;
+          const scope = options.body.scope.find(s => s in payload);
+          if (!scope) {
+            return;
+          }
+          const paginatedEntryState = paginatedEntryStore.getState();
+          const prevData = paginatedEntryState.value;
+          paginatedEntryStore.setData({
+            scopeName: scope,
+            value: prevData || null,
+            meta,
+            status: DataStatus.error,
+            isDone: true,
+            error: payload,
           });
         },
         body,

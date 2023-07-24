@@ -11,7 +11,11 @@ import { CachePolicy, Entry } from "../../src";
 import { client } from "../../src";
 import { DataStatus } from "../../src/cache/DataStatus";
 import { ResponseData as AssetsPricesResponse } from "../../src/domains/assetsPrices";
-import { useAssetsFullInfo, useAssetsPrices } from "../../src/react";
+import {
+  useAddressPositions,
+  useAssetsFullInfo,
+  useAssetsPrices,
+} from "../../src/react";
 import { useSubscription } from "../../src/react/useSubscription";
 import { endpoint, API_TOKEN } from "../config";
 import { EntryInfo } from "./EntryInfo";
@@ -190,6 +194,18 @@ function AnyMessageHandler() {
   );
 }
 
+function ErrorView() {
+  const entry = useAddressPositions({ address: USDC, currency: "usd" });
+  return (
+    <div>
+      <EntryInfo
+        entry={entry}
+        render={entry => <div>{JSON.stringify(entry.error)}</div>}
+      />
+    </div>
+  );
+}
+
 function App() {
   const assetCodes = useMemo(() => [ETH, USDC, UNI], []);
   const [show1, toggle1] = useReducer(x => !x, false);
@@ -202,6 +218,7 @@ function App() {
   const [show8, toggle8] = useReducer(x => !x, false);
   const [show9, toggle9] = useReducer(x => !x, false);
   const [show10, toggle10] = useReducer(x => !x, false);
+  const [show11, toggle11] = useReducer(x => !x, false);
   const [showHelpers, toggleHelpers] = useReducer(x => !x, false);
   const [currency, setCurrency] = useState("usd");
   return (
@@ -261,6 +278,11 @@ function App() {
         <button onClick={toggle10}>toggle</button>
         <br />
         {show10 ? <NFTCollectionsPaginated /> : null}
+      </div>
+      <div>
+        <button onClick={toggle11}>toggle error</button>
+        <br />
+        {show11 ? <ErrorView /> : null}
       </div>
 
       <h3>Helpers:</h3>
