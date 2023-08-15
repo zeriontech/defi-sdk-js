@@ -34,6 +34,7 @@ export function EntryInfo<T>({
           .filter(key => key !== "data")
           .filter(key => key !== "apiSubscription")
           .filter(key => key !== "value")
+          .filter(key => key !== "error")
           .map(key => (
             <code key={key}>
               {key}: {JSON.stringify((entry as any)[key])}

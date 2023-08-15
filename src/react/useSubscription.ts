@@ -107,6 +107,8 @@ function useRequestData<T, Namespace extends string, ScopeName extends string>({
             isDone: entry ? entry.isDone : prevEntry.isDone,
             isFetching: entry ? entry.isFetching : prevEntry.isFetching,
             isLoading: entry ? entry.isLoading : prevEntry.isLoading,
+            isError: entry ? entry.isError : prevEntry.isError,
+            error: entry ? entry.error : prevEntry.error,
           };
         }
         return entry;
