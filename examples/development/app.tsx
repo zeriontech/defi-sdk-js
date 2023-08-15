@@ -195,6 +195,8 @@ function AnyMessageHandler() {
 }
 
 function ErrorView() {
+  // USDC is not a valid wallet address
+  // backend should return validation error for this request
   const entry = useAddressPositions({ address: USDC, currency: "usd" });
   return (
     <div>
