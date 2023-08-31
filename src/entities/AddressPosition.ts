@@ -8,6 +8,13 @@ export type PositionType =
   | "staked"
   | "locked";
 
+export interface AddressPositionDappInfo {
+  id: string;
+  name: string | null;
+  url: string | null;
+  icon_url: string | null;
+}
+
 export interface AddressPosition {
   apy: string | null;
   asset: Asset;
@@ -21,4 +28,5 @@ export interface AddressPosition {
   type: PositionType;
   value: string | null;
   is_displayable: boolean;
+  dapp: AddressPositionDappInfo | null;
 }
