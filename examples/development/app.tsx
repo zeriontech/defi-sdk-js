@@ -6,7 +6,7 @@ import {
   Link,
   LinkProps,
 } from "react-router-dom";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import { CachePolicy, Entry } from "../../src";
 import { client } from "../../src";
 import { DataStatus } from "../../src/cache/DataStatus";
@@ -325,7 +325,7 @@ function NavLink(props: LinkProps) {
 }
 
 function render() {
-  ReactDOM.render(
+  createRoot(document.getElementById("root")).render(
     <BrowserRouter>
       <div
         style={{
@@ -343,8 +343,7 @@ function render() {
           <Route path="/custom-cache" element={<CustomCache />} />
         </Routes>
       </div>
-    </BrowserRouter>,
-    document.getElementById("root")
+    </BrowserRouter>
   );
 }
 
