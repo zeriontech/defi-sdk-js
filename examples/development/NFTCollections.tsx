@@ -7,7 +7,7 @@ import {
   createDomainHook,
   createPaginatedDomainHook,
 } from "../../src/react/domains/createDomainHook";
-import { EntryInfo } from "./EntryInfo";
+import { EntryInfo } from "./components/EntryInfo";
 
 type Payload = {
   currency: string;
