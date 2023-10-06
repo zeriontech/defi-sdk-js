@@ -29,25 +29,7 @@ import { assetsFullInfo } from "./domains/assetsFullInfo";
 import { addressPortfolio } from "./domains/addressPortfolio";
 import { addressPortfolioDecomposition } from "./domains/addressPortfolioDecomposition";
 import { PersistentCache } from "./cache/PersistentCache";
-
-function isObject(x: unknown): x is Record<string, unknown> {
-  return typeof x === "object" && x != null;
-}
-
-function isPromise<T>(value: T | Promise<T>): value is Promise<T> {
-  return isObject(value) && typeof value.then === "function";
-}
-
-function handleMaybePromise<T>(
-  maybePromise: T | Promise<T>,
-  cb: (data: T) => void
-) {
-  if (isPromise(maybePromise)) {
-    maybePromise.then(cb);
-  } else {
-    cb(maybePromise);
-  }
-}
+import { handleMaybePromise } from "./shared/handleMaybePromise";
 
 const subsciptionEvents: SubscriptionEvent[] = [
   "received",
@@ -293,12 +275,11 @@ function getOrCreateEntry(
   status?: Entry<any, any>["status"] | null
 ) {
   if (!cache.get(key, cachePolicy)) {
-    cache.set(key, EntryStore.fromStatus(status));
+    cache.set(key, EntryStore.fromStatus(status ?? undefined));
   }
   const entry = cache.get(key, cachePolicy);
   if (entry && status != null && entry.state.status !== status) {
     entry.setState(state => ({ ...state, status }));
-    // entry.state.status = status;
   }
   if (entry) {
     return entry;
@@ -350,7 +331,6 @@ export class BareClient {
     this.apiToken = config ? config.apiToken : null;
     this.ioOptions = config?.ioOptions;
     this.cache = config?.cache || new RequestCache();
-    Object.assign(window, { theCache: this.cache });
     this.customGetCacheKey = config?.getCacheKey;
     this.hooks = this.configureHooks(config);
     this.namespaceFactory = this.namespaceFactory.bind(this);
