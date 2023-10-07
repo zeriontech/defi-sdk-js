@@ -568,9 +568,9 @@ export class BareClient {
       const { namespace } = options.socketNamespace;
       const requestId = getRequetsId();
 
-      // NOTE: don't mutate body to create consistent cache key
       handleMaybePromise(
         this.hooks.willSendRequest(
+          // NOTE: don't mutate body to create consistent cache key
           {
             ...options.body,
             payload: { ...options.body.payload, request_id: requestId },

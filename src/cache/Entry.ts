@@ -120,7 +120,10 @@ export class EntryStore<T = any, ScopeName extends string = any> extends Store<
       this.apiSubscription = null;
       this.state.hasSubscribers = false;
     }
-    if (this.state.status === DataStatus.requested) {
+    if (
+      this.state.status === DataStatus.requested ||
+      this.state.status === DataStatus.updating
+    ) {
       // NOTE:
       // it's ok to mutate here because there are no more listeners attached
       this.state.status = DataStatus.noRequests;
