@@ -1,11 +1,7 @@
 import React, { useMemo } from "react";
-import {
-  mergeList,
-  useAddressActions,
-  useSubscription,
-} from "../../src";
+import { mergeList, useAddressActions, useSubscription } from "../../src";
 import { AddressAction } from "../../src/entities/AddressAction";
-import { EntryInfo } from "./EntryInfo";
+import { EntryInfo } from "./components/EntryInfo";
 
 export function Actions() {
   const entry = useSubscription<AddressAction[], "address", "actions">({

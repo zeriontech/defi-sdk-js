@@ -7,10 +7,8 @@ import {
   LinkProps,
 } from "react-router-dom";
 import { createRoot } from "react-dom/client";
-import { CachePolicy, Entry } from "../../src";
-import { client } from "../../src";
+import { AssetInfo, client } from "../../src";
 import { DataStatus } from "../../src/cache/DataStatus";
-import { ResponseData as AssetsPricesResponse } from "../../src/domains/assetsPrices";
 import {
   useAddressPositions,
   useAssetsFullInfo,
@@ -18,13 +16,16 @@ import {
 } from "../../src/react";
 import { useSubscription } from "../../src/react/useSubscription";
 import { endpoint, API_TOKEN } from "../config";
-import { EntryInfo } from "./EntryInfo";
+import { EntryInfo } from "./components/EntryInfo";
 import { Helpers } from "./Helpers";
 import { VStack } from "./VStack";
 import { CustomCache } from "./custom-cache/CustomCache";
 import "./global.module.css";
 import { Actions, ActionsPaginated } from "./Actions";
 import { NFTCollections, NFTCollectionsPaginated } from "./NFTCollections";
+import { Prices } from "./components/Prices";
+import { RequestHooksTest } from "./RequestHooksTest";
+import { ETH, UNI, USDC } from "./constants";
 
 function getQueryForBackendEnv() {
   const params = new URLSearchParams(window.location.search);
@@ -63,63 +64,9 @@ client.subscribe<any[], "chains", "info">({
   },
 });
 
-const ETH = "eth";
-const USDC = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48";
-const UNI = "0x1f9840a85d5af5bf1d1762f925bdaddc4201f984";
-
-interface Asset {
-  asset_code: string;
-  symbol: string;
-  price: { value: number };
-}
-
-function PriceEntry({
-  entry,
-}: {
-  entry: Entry<AssetsPricesResponse, "prices">;
-}) {
-  return (
-    <pre>
-      {entry.data ? (
-        Object.values(entry.data.prices).map(asset => (
-          <div key={asset.asset_code}>
-            {asset.symbol}price:{" "}
-            {asset.price ? asset.price.value : <i>no price</i>}
-          </div>
-        ))
-      ) : (
-        <span>no data</span>
-      )}
-    </pre>
-  );
-}
-
-function Prices({
-  assetCodes,
-  cachePolicy = "cache-and-network",
-}: {
-  assetCodes: string[];
-  cachePolicy?: CachePolicy;
-}) {
-  const entry = useAssetsPrices(
-    { asset_codes: assetCodes, currency: "usd" },
-    { cachePolicy }
-  );
-  return (
-    <>
-      <p>cachePolicy: {cachePolicy}</p>
-      <EntryInfo entry={entry} render={entry => <PriceEntry entry={entry} />} />
-    </>
-  );
-}
-
 function Market() {
   const [query, setQuery] = useState("");
-  const { data, status } = useSubscription<
-    { [key: string]: Asset },
-    "assets",
-    "info"
-  >({
+  const { data, status } = useSubscription<AssetInfo[], "assets", "info">({
     namespace: "assets",
     body: useMemo(
       () => ({
@@ -257,7 +204,7 @@ function App() {
         ) : null}
       </div>
       <div>
-        <button onClick={toggle6}>toggle</button>
+        <button onClick={toggle6}>toggle Market</button>
         <br />
         {show6 ? <Market /> : null}
       </div>
@@ -324,8 +271,8 @@ function NavLink(props: LinkProps) {
   );
 }
 
-function render() {
-  createRoot(document.getElementById("root")).render(
+function Root() {
+  return (
     <BrowserRouter>
       <div
         style={{
@@ -334,16 +281,35 @@ function render() {
           gridGap: 20,
         }}
       >
-        <div style={{ backgroundColor: "#f5f5f7", paddingTop: 16 }}>
+        <div
+          style={{
+            backgroundColor: "#f5f5f7",
+            paddingTop: 16,
+            height: "100vh",
+            boxSizing: "border-box",
+          }}
+        >
           <NavLink to="/">Main</NavLink>
           <NavLink to="/custom-cache">CustomCache</NavLink>
+          <NavLink to="/request-hooks">Request Hooks</NavLink>
         </div>
-        <Routes>
-          <Route path="/" element={<App />} />
-          <Route path="/custom-cache" element={<CustomCache />} />
-        </Routes>
+        <main>
+          <Routes>
+            <Route path="/" element={<App />} />
+            <Route path="/custom-cache" element={<CustomCache />} />
+            <Route path="/request-hooks" element={<RequestHooksTest />} />
+          </Routes>
+        </main>
       </div>
     </BrowserRouter>
+  );
+}
+
+function render() {
+  createRoot(document.getElementById("root")).render(
+    <React.StrictMode>
+      <Root />
+    </React.StrictMode>
   );
 }
 

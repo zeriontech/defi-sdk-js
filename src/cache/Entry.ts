@@ -27,7 +27,7 @@ function isLoadingStatus(status: DataStatus) {
   return status === DataStatus.requested;
 }
 
-function isFetchingStatus(status: DataStatus) {
+export function isFetchingStatus(status: DataStatus): boolean {
   return status === DataStatus.requested || status === DataStatus.updating;
 }
 
@@ -120,7 +120,7 @@ export class EntryStore<T = any, ScopeName extends string = any> extends Store<
       this.apiSubscription = null;
       this.state.hasSubscribers = false;
     }
-    if (this.state.status === DataStatus.requested) {
+    if (isFetchingStatus(this.state.status)) {
       // NOTE:
       // it's ok to mutate here because there are no more listeners attached
       this.state.status = DataStatus.noRequests;

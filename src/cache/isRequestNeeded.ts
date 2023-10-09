@@ -1,4 +1,5 @@
 import type { Entry } from "./Entry";
+import { isFetchingStatus } from "./Entry";
 import type { CachePolicy } from "./CachePolicy";
 import { DataStatus } from "./DataStatus";
 
@@ -11,7 +12,7 @@ export function isRequestNeeded(
       return (
         !entry ||
         entry.status === DataStatus.noRequests ||
-        (entry.status !== DataStatus.requested && !entry.hasSubscribers)
+        (!isFetchingStatus(entry.status) && !entry.hasSubscribers)
       );
     }
     case "cache-first": {

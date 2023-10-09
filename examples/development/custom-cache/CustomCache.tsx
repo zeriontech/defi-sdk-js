@@ -13,6 +13,13 @@ const cache = new PersistentCache({ max: 4 });
 
 let didLoad = false;
 
+/**
+ * Test flow:
+ * 1. Open page to load data
+ * 2. Leave page
+ * 3. Return to page
+ * 4. Data must be loaded from cache AND a new request MUST be made over the network
+ */
 async function configure() {
   if (didLoad) {
     return Promise.resolve();
@@ -23,6 +30,13 @@ async function configure() {
       url: endpoint,
       apiToken: API_TOKEN,
       cache,
+      hooks: {
+        willSendRequest: async request => {
+          await new Promise(r => setTimeout(r, 1000));
+          (request.payload as any).lol = "delayed hook";
+          return request;
+        },
+      },
     });
   });
 }
@@ -38,13 +52,8 @@ function StaleIndicator({
 
 function PositionsCount() {
   const { value, isStale } = useAddressPositions(
-    {
-      address: TEST_ADDRESS,
-      currency: "usd",
-    },
-    {
-      client,
-    }
+    { address: TEST_ADDRESS, currency: "usd" },
+    { client }
   );
   if (!value) {
     return null;
@@ -55,13 +64,8 @@ function PositionsCount() {
 }
 function AddressPositions() {
   const { value, isStale } = useAddressPositions(
-    {
-      address: TEST_ADDRESS,
-      currency: "usd",
-    },
-    {
-      client,
-    }
+    { address: TEST_ADDRESS, currency: "usd" },
+    { client }
   );
   if (!value) {
     return <h2>Loading...</h2>;
@@ -86,10 +90,7 @@ function AddressPositions() {
 
 function AssetPrice({ id }: { id: string }) {
   const { value, isStale } = useAssetsPrices(
-    {
-      currency: "usd",
-      asset_codes: [id],
-    },
+    { currency: "usd", asset_codes: [id] },
     { client }
   );
   if (!value) {

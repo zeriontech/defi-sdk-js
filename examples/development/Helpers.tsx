@@ -6,7 +6,7 @@ import {
 } from "../../src/react";
 import { useAssetsInfo } from "../../src/react";
 import { useAddressLoans } from "../../src/react";
-import { EntryInfo } from "./EntryInfo";
+import { EntryInfo } from "./components/EntryInfo";
 import { VStack } from "./VStack";
 import { TEST_ADDRESS } from "../config";
 import { client, Entry } from "../../src";

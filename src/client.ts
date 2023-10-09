@@ -29,6 +29,7 @@ import { assetsFullInfo } from "./domains/assetsFullInfo";
 import { addressPortfolio } from "./domains/addressPortfolio";
 import { addressPortfolioDecomposition } from "./domains/addressPortfolioDecomposition";
 import { PersistentCache } from "./cache/PersistentCache";
+import { handleMaybePromise } from "./shared/handleMaybePromise";
 
 const subsciptionEvents: SubscriptionEvent[] = [
   "received",
@@ -245,7 +246,9 @@ export interface Hooks {
   willSendRequest: <RequestPayload, ScopeName extends string>(
     request: Request<RequestPayload, ScopeName>,
     { namespace }: { namespace: string }
-  ) => Request<RequestPayload, ScopeName>;
+  ) =>
+    | Request<RequestPayload, ScopeName>
+    | Promise<Request<RequestPayload, ScopeName>>;
 }
 
 type IOOptions = Parameters<typeof io>[0];
@@ -269,16 +272,41 @@ function getOrCreateEntry(
   cache: RequestCache<EntryStore>,
   key: string | number,
   cachePolicy: CachePolicy,
-  status?: Entry<any, any>["status"]
+  status?: Entry<any, any>["status"] | null
 ) {
   if (!cache.get(key, cachePolicy)) {
-    cache.set(key, EntryStore.fromStatus(status));
+    cache.set(key, EntryStore.fromStatus(status ?? undefined));
   }
   const entry = cache.get(key, cachePolicy);
+  if (entry && status != null && entry.state.status !== status) {
+    entry.setState(state => ({ ...state, status }));
+  }
   if (entry) {
     return entry;
   }
   throw new Error("Unexpected internal error: newly created entry not found");
+}
+
+function getRequestStatus({
+  shouldMakeRequest,
+  entry,
+}: {
+  shouldMakeRequest: boolean;
+  entry: EntryStore | null;
+}) {
+  /** Chooses status that will be applied to a retrieved entry when a cachedSubscribe is made */
+  if (!shouldMakeRequest) {
+    return null;
+  }
+  if (
+    entry &&
+    (entry.state.status === DataStatus.ok ||
+      entry.state.status === DataStatus.updating)
+  ) {
+    return DataStatus.updating;
+  } else {
+    return DataStatus.requested;
+  }
 }
 
 export const defaultGetHasNext = <
@@ -357,16 +385,36 @@ export class BareClient {
   >): ReturnType<typeof subscribe> {
     const options = normalizeOptions(rawOptions, this.namespaceFactory);
     const { namespace } = options.socketNamespace;
-    this.hooks.willSendRequest(options.body, { namespace });
-    const requestId = getRequetsId();
-    return subscribe({
-      ...options,
-      verifyFn,
-      body: {
-        ...options.body,
-        payload: { ...options.body.payload, request_id: requestId },
-      },
-    });
+
+    const abortController = new AbortController();
+
+    handleMaybePromise(
+      this.hooks.willSendRequest(options.body, { namespace }),
+      () => {
+        if (abortController.signal.aborted) {
+          return;
+        }
+        const requestId = getRequetsId();
+        const unsubscribe = subscribe({
+          ...options,
+          verifyFn,
+          body: {
+            ...options.body,
+            payload: { ...options.body.payload, request_id: requestId },
+          },
+        });
+
+        function abortHandler() {
+          unsubscribe();
+          abortController.signal.removeEventListener("abort", abortHandler);
+        }
+        abortController.signal.addEventListener("abort", abortHandler);
+      }
+    );
+
+    return () => {
+      abortController.abort();
+    };
   }
 
   getCacheStore<
@@ -497,100 +545,115 @@ export class BareClient {
       cachePolicy,
       maybeEntryStore ? maybeEntryStore.getState() : null
     );
+    const status = getRequestStatus({
+      entry: maybeEntryStore,
+      shouldMakeRequest,
+    });
     const entryStore = getOrCreateEntry(
       this.cache,
       cacheKey,
       cachePolicy,
-      shouldMakeRequest ? DataStatus.requested : undefined
+      status
     );
     const entryState = entryStore.getState();
 
-    const unlisten = entryStore.addClientListener(onData);
+    const unlistenStore = entryStore.addClientListener(onData);
 
+    const abortController = new AbortController();
+    const unlisten = () => {
+      unlistenStore();
+      abortController.abort();
+    };
     if (shouldMakeRequest) {
       const { namespace } = options.socketNamespace;
       const requestId = getRequetsId();
 
-      // NOTE: don't mutate body to create consistent cache key
-      const body = this.hooks.willSendRequest(
-        {
-          ...options.body,
-          payload: { ...options.body.payload, request_id: requestId },
-        },
-        { namespace }
+      handleMaybePromise(
+        this.hooks.willSendRequest(
+          // NOTE: don't mutate body to create consistent cache key
+          {
+            ...options.body,
+            payload: { ...options.body.payload, request_id: requestId },
+          },
+          { namespace }
+        ),
+        body => {
+          if (abortController.signal.aborted) {
+            return;
+          }
+          const unsubscribe = subscribe({
+            ...options,
+            body,
+            verifyFn,
+            onMessage: (event, data) => {
+              const { payload, meta } = data;
+              const scope = options.body.scope.find(s => s in payload);
+              if (!scope) {
+                return;
+              }
+              const entryState = entryStore.getState();
+              if (options.method === "stream" && event === "done") {
+                entryStore.setData({
+                  scopeName: scope,
+                  value: entryState.value,
+                  meta,
+                  status: DataStatus.ok,
+                  isDone: true,
+                  error: null,
+                });
+                return;
+              }
+              const merged = mergeStrategy({
+                event,
+                prevData: entryState.data
+                  ? entryState.data[scope]
+                  : entryState.data,
+                newData: payload[scope] as any,
+                getId,
+              });
+              const status =
+                options.method === "stream"
+                  ? isIdleStatus(entryState.status)
+                    ? DataStatus.updating
+                    : entryState.status
+                  : DataStatus.ok;
+              entryStore.setData({
+                scopeName: scope,
+                value: merged,
+                meta,
+                status,
+                isDone: options.method !== "stream",
+                error: null,
+              });
+              if (
+                (event === "done" && options.method === "stream") ||
+                options.method === "get"
+              ) {
+                unsubscribe?.();
+              }
+            },
+            onError: (_event, data) => {
+              const { payload, meta } = data;
+              const scope = options.body.scope[0];
+              if (!scope) {
+                return;
+              }
+              const entryState = entryStore.getState();
+              const prevData = entryState.value;
+              entryStore.setData({
+                scopeName: scope,
+                value: prevData || null,
+                meta,
+                status: DataStatus.error,
+                isDone: true,
+                error: payload,
+              });
+              unsubscribe?.();
+            },
+          });
+          entryStore.makeSubscription({ unsubscribe });
+        }
       );
-
-      const unsubscribe = subscribe({
-        ...options,
-        body,
-        verifyFn,
-        onMessage: (event, data) => {
-          const { payload, meta } = data;
-          const scope = options.body.scope.find(s => s in payload);
-          if (!scope) {
-            return;
-          }
-          const entryState = entryStore.getState();
-          if (options.method === "stream" && event === "done") {
-            entryStore.setData({
-              scopeName: scope,
-              value: entryState.value,
-              meta,
-              status: DataStatus.ok,
-              isDone: true,
-              error: null,
-            });
-            return;
-          }
-          const merged = mergeStrategy({
-            event,
-            prevData: entryState.data
-              ? entryState.data[scope]
-              : entryState.data,
-            newData: payload[scope] as any,
-            getId,
-          });
-          const status =
-            options.method === "stream"
-              ? isIdleStatus(entryState.status)
-                ? DataStatus.updating
-                : entryState.status
-              : DataStatus.ok;
-          entryStore.setData({
-            scopeName: scope,
-            value: merged,
-            meta,
-            status,
-            isDone: options.method !== "stream",
-            error: null,
-          });
-          if (
-            (event === "done" && options.method === "stream") ||
-            options.method === "get"
-          ) {
-            unsubscribe?.();
-          }
-        },
-        onError: (_event, data) => {
-          const { payload, meta } = data;
-          const scope = options.body.scope[0];
-          if (!scope) {
-            return;
-          }
-          const entryState = entryStore.getState();
-          const prevData = entryState.value;
-          entryStore.setData({
-            scopeName: scope,
-            value: prevData || null,
-            meta,
-            status: DataStatus.error,
-            isDone: true,
-            error: payload,
-          });
-          unsubscribe?.();
-        },
-      });
-      entryStore.makeSubscription({ unsubscribe });
     }
 
     if (shouldReturnCachedData(cachePolicy)) {
