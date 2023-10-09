@@ -271,8 +271,8 @@ function NavLink(props: LinkProps) {
   );
 }
 
-function render() {
-  createRoot(document.getElementById("root")).render(
+function Root() {
+  return (
     <BrowserRouter>
       <div
         style={{
@@ -302,6 +302,14 @@ function render() {
         </main>
       </div>
     </BrowserRouter>
+  );
+}
+
+function render() {
+  createRoot(document.getElementById("root")).render(
+    <React.StrictMode>
+      <Root />
+    </React.StrictMode>
   );
 }
 
