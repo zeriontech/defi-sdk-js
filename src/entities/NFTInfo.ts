@@ -1,5 +1,6 @@
+import type { NFTCollection } from "./NFT";
 import type { NFTAsset } from "./NFTAsset";
-import type { NFTCollection, NFTCollectionInfo } from "./NFTCollection";
+import type { NFTCollectionInfo } from "./NFTCollection";
 
 interface NFTAttribute {
   key: string;

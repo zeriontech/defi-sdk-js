@@ -1,6 +1,6 @@
 import { Asset } from "./Asset";
+import { NFTCollection } from "./NFT";
 import { NFTAsset } from "./NFTAsset";
-import { NFTCollection } from "./NFTCollection";
 import { TransactionStatus } from "./TransactionStatus";
 
 export type ActionAssetFilter = "fungible" | "nft" | "all";

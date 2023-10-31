@@ -15,6 +15,7 @@ export * from "./AssetTag";
 export * from "./CovalentAsset";
 export * from "./Direction";
 export * from "./GasPriceInfo";
+export * from "./NFT";
 export * from "./NFTAsset";
 export * from "./NFTCollection";
 export * from "./NFTInfo";
