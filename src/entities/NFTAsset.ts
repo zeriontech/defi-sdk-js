@@ -1,4 +1,5 @@
-import type { NFTCollection, NFTCollectionInfo } from "./NFTCollection";
+import type { NFTCollection } from "./NFT";
+import type { NFTCollectionInfo } from "./NFTCollection";
 
 interface NFTContent {
   url: string | null;
