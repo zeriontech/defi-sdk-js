@@ -4,7 +4,13 @@
   "description": "Zerion API Client for JS",
   "main": "lib/defi-sdk.js",
   "source": "./src/index.ts",
-  "exports": "./lib/defi-sdk.modern.js",
+  "exports": {
+    ".": {
+      "default": "./lib/defi-sdk.modern.js",
+      "require": "./lib/defi-sdk.js",
+      "types": "./lib/index.d.ts"
+    }
+  },
   "module": "lib/defi-sdk.module.js",
   "unpkg": "lib/defi-sdk.umd.js",
   "typings": "lib/index.d.ts",
