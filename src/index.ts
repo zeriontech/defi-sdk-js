@@ -19,6 +19,7 @@ export { createSocketNamespace } from "./socket/createSocketNamespace";
 // domain helpers
 export { addressLoans } from "./domains/addressLoans";
 export { addressAssets } from "./domains/addressAssets";
+export { addressNftPosition } from "./domains/addressNftPosition";
 export { addressPositions } from "./domains/addressPositions";
 export { addressPortfolio } from "./domains/addressPortfolio";
 export { addressPortfolioDecomposition } from "./domains/addressPortfolioDecomposition";
