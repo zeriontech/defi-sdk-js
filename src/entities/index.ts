@@ -1,6 +1,7 @@
 export * from "./AddressAsset";
 export * from "./AddressBSCAsset";
 export * from "./AddressInfo";
+export * from "./AddressMembership";
 export * from "./AddressNFT";
 export * from "./AddressPolygonAsset";
 export * from "./AddressPosition";

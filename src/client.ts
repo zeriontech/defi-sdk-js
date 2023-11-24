@@ -28,8 +28,10 @@ import { assetsCharts } from "./domains/assetsCharts";
 import { assetsFullInfo } from "./domains/assetsFullInfo";
 import { addressPortfolio } from "./domains/addressPortfolio";
 import { addressPortfolioDecomposition } from "./domains/addressPortfolioDecomposition";
-import { PersistentCache } from "./cache/PersistentCache";
 import { handleMaybePromise } from "./shared/handleMaybePromise";
+import { addressMembership } from "./domains/addressMembership";
+import { addressNftPosition } from "./domains/addressNftPosition";
+import { PersistentCache } from "./cache/PersistentCache";
 
 const subsciptionEvents: SubscriptionEvent[] = [
   "received",
@@ -830,15 +832,17 @@ export class BareClient {
 
 export class Client extends BareClient {
   addressAssets = addressAssets;
+  assetsCharts = assetsCharts;
   addressLoans = addressLoans;
-  addressPositions = addressPositions;
+  addressMembership = addressMembership;
+  addressNftPosition = addressNftPosition;
   addressPortfolio = addressPortfolio;
   addressPortfolioDecomposition = addressPortfolioDecomposition;
+  addressPositions = addressPositions;
   addressCharts = addressCharts;
-  assetsCharts = assetsCharts;
-  assetsPrices = assetsPrices;
   assetsFullInfo = assetsFullInfo;
   assetsInfo = assetsInfo;
+  assetsPrices = assetsPrices;
 }
 
 export const client = new Client(null);
