@@ -12,10 +12,15 @@ interface MigrationBalances {
 export interface MigrationToken {
   generation: "G1" | "OnePointO";
   id: string;
-  premium: { expiration_time: string | null };
+  premium: {
+    expiration_time: string | null;
+    bundle: { address: string; update_allowed_at: string }[] | null;
+    type: "Bundle" | "Single";
+  };
 }
 
 export interface AddressMembership {
+  parentTokens: MigrationToken[];
   premium: MigrationToken["premium"] | null;
   tokens: MigrationToken[] | null;
   migration: {
