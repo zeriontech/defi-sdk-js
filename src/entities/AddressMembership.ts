@@ -15,12 +15,21 @@ export interface MigrationToken {
   premium: {
     expiration_time: string | null;
     bundle: { address: string; update_allowed_at: string }[] | null;
-    type: "Bundle" | "Single";
+    plan: "Bundle" | "Single";
+    features: {
+      fee_waiver: boolean;
+      csv: boolean;
+      pnl: boolean;
+      perks: boolean;
+      early_access: boolean;
+    };
   };
 }
 
+export type ParentToken = MigrationToken & { owner: string };
+
 export interface AddressMembership {
-  parentTokens: MigrationToken[];
+  parent_tokens: ParentToken[] | null;
   premium: MigrationToken["premium"] | null;
   tokens: MigrationToken[] | null;
   migration: {
