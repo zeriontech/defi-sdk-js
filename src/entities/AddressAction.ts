@@ -52,6 +52,7 @@ interface ApprovalNFTCollection extends NFTCollection {
 export interface AddressAction {
   id: string;
   datetime: string;
+  address: string;
   type: { value: ActionType; display_value: string };
   transaction: {
     chain: string;
