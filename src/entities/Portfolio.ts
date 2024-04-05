@@ -33,4 +33,14 @@ export interface PortfolioDecomposition {
     relative: number;
   };
   total_value: number;
+  chains: Record<
+    string,
+    {
+      id: string;
+      explorer_tx_url: string | null;
+      icon_url: string | null;
+      is_testnet: boolean;
+      name: string;
+    }
+  >;
 }
