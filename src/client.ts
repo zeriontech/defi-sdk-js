@@ -153,7 +153,10 @@ export type CachedPaginatedRequestOptions<
 };
 
 function verifyError(response: any) {
-  return response?.meta?.status === "error";
+  return (
+    response?.meta?.status === "error" &&
+    response.meta.type !== "request.throttled" // we don't need to break connection on throttled event
+  );
 }
 
 export function subscribe<
