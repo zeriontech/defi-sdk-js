@@ -156,6 +156,15 @@ function verifyError(response: any) {
   return response?.meta?.status === "error";
 }
 
+function verifyRetry(response: any) {
+  return (
+    response?.meta?.status === "error" &&
+    response.payload?.errors?.[0]?.type === "request.throttled"
+  );
+}
+
+const MAX_RETRIES = 3;
+
 export function subscribe<
   R,
   Namespace extends string = any,
@@ -174,6 +183,8 @@ export function subscribe<
     throw new Error("Invalid scope argument: scope cannot be empty");
   }
   const model = body.scope[0];
+  let retryCounter = 0;
+  let unsubscribed = false;
   const handleMessage = (event: SubscriptionEvent) => (
     response: Response<ResponsePayload<R, ScopeName>>
   ) => {
@@ -190,8 +201,22 @@ export function subscribe<
   };
 
   const handleAcknowledge = (event: string, errorResponse: ErrorResponse) => {
-    if (onError && verifyError(errorResponse)) {
-      onError(event, errorResponse);
+    if (unsubscribed) {
+      return;
+    }
+    if (verifyRetry(errorResponse)) {
+      retryCounter += 1;
+      if (retryCounter > MAX_RETRIES) {
+        onError?.(event, errorResponse as ErrorResponse);
+        return;
+      }
+      setTimeout(() => {
+        if (!unsubscribed) {
+          socket.emit(method, body, handleAcknowledge);
+        }
+      }, 1000 * 3 ** retryCounter);
+    } else if (verifyError(errorResponse)) {
+      onError?.(event, errorResponse);
     }
   };
 
@@ -207,6 +232,7 @@ export function subscribe<
 
   return () => {
     listeners.forEach(l => l());
+    unsubscribed = true;
 
     if (method === "subscribe") {
       socket.emit("unsubscribe", body);
