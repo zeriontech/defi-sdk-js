@@ -685,7 +685,7 @@ export class BareClient {
     }
 
     if (shouldReturnCachedData(cachePolicy)) {
-      setTimeout(() => onData(entryState));
+      Promise.resolve().then(() => onData(entryState));
     }
 
     return {
@@ -842,7 +842,7 @@ export class BareClient {
     };
 
     if (shouldReturnCachedData(cachePolicy)) {
-      setTimeout(() => onData(initialPaginatedState));
+      Promise.resolve().then(() => onData(initialPaginatedState));
     }
 
     return {
