@@ -685,7 +685,7 @@ export class BareClient {
     }
 
     if (shouldReturnCachedData(cachePolicy)) {
-      onData(entryState);
+      setTimeout(() => onData(entryState));
     }
 
     return {
@@ -842,7 +842,7 @@ export class BareClient {
     };
 
     if (shouldReturnCachedData(cachePolicy)) {
-      onData(initialPaginatedState);
+      setTimeout(() => onData(initialPaginatedState));
     }
 
     return {
