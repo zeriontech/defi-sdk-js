@@ -685,6 +685,7 @@ export class BareClient {
     }
 
     if (shouldReturnCachedData(cachePolicy)) {
+      // onData callback should not be called before return object with `unsubscribe` is initialised
       Promise.resolve().then(() => onData(entryState));
     }
 
@@ -842,6 +843,7 @@ export class BareClient {
     };
 
     if (shouldReturnCachedData(cachePolicy)) {
+      // onData callback should not be called before return object with `unsubscribe` is initialised
       Promise.resolve().then(() => onData(initialPaginatedState));
     }
 
