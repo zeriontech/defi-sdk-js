@@ -85,12 +85,24 @@ function useRequestData<T, Namespace extends string, ScopeName extends string>({
   | PaginatedOptionsCached<Namespace, ScopeName>
 ) &
   Required<HookExtraOptions>) {
+  const unmountedRef = useRef(false);
   const [entry, setEntry] = useState<Result<T, ScopeName> | null>(
     client.getFromCache(hookOptions)
   );
 
+  useEffect(() => {
+    return () => {
+      unmountedRef.current = true;
+    };
+  }, []);
+
   const guardedSetEntry = useCallback(
     (entry: Result<T, ScopeName> | null) => {
+      // guardedSetEntry is assigned to onData callback in socket subscription
+      // it can be called after unmount
+      if (unmountedRef.current) {
+        return;
+      }
       setEntry(prevEntry => {
         if (!keepStaleData) {
           return entry;
