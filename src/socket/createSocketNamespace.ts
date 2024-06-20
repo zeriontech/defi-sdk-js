@@ -12,7 +12,8 @@ export const createSocketNamespace = <T extends string>(
   ioOptions: Parameters<typeof io>[0] = {},
   namespaceName = namespace
 ): SocketNamespace<T> => {
-  if (!cached[namespace]) {
+  const key = `${endpoint}:${namespace}`;
+  if (!cached[key]) {
     const { query = {}, ...restOptions } = ioOptions;
     const socket = io(new URL(namespace, endpoint).toString(), {
       transports: ["websocket"],
@@ -22,7 +23,7 @@ export const createSocketNamespace = <T extends string>(
     });
     const updatedSocket = reconnectionProxy(socket, endpoint);
     handlePageVisibility(updatedSocket);
-    cached[namespace] = { socket: updatedSocket, namespace: namespaceName };
+    cached[key] = { socket: updatedSocket, namespace: namespaceName };
   }
-  return cached[namespace];
+  return cached[key];
 };
