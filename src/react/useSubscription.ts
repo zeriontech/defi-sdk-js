@@ -226,16 +226,6 @@ export function usePaginatedRequest<
   const hookOptions = { getHasNext, ...restOptions };
   const client = currentClient || defaultClient;
 
-  const cleanedCacheRef = useRef(false);
-  if (
-    !cleanedCacheRef.current &&
-    paginatedCacheMode === "first-page" &&
-    "cursorKey" in hookOptions
-  ) {
-    client.slicePaginatedCache({ ...hookOptions, body });
-    cleanedCacheRef.current = true;
-  }
-
   const fetchMoreRef = useRef<() => void>();
   const [fetchMoreId, setFetchMoreId] = useState(0);
 
