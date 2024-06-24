@@ -16,6 +16,7 @@ import { DataStatus } from "../cache/DataStatus";
 import { SocketNamespace } from "../shared/SocketNamespace";
 import { shouldReturnCachedData } from "../cache/shouldReturnCachedData";
 import { defaultCachePolicy } from "../cache/defaultCachePolicy";
+import { useClient } from "./context";
 
 const emptyEntryIdle = getInitialState<any, any>();
 const emptyEntryLoading = getInitialState<any, any>(DataStatus.requested);
@@ -180,10 +181,11 @@ export function useSubscription<
 >({
   keepStaleData = false,
   enabled = true,
-  client: currentClient,
+  client: clientFromProps,
   ...hookOptions
 }: HookOptions<Namespace, ScopeName>): Result<T, ScopeName> {
-  const client = currentClient || defaultClient;
+  const clientFromContext = useClient();
+  const client = clientFromProps || clientFromContext || defaultClient;
   const { entry, setEntry, options } = useRequestData<T, Namespace, ScopeName>({
     keepStaleData,
     client,
@@ -214,7 +216,7 @@ export function usePaginatedRequest<
 >({
   keepStaleData = false,
   enabled = true,
-  client: currentClient,
+  client: clientFromProps,
   paginatedCacheMode = "first-page",
   body,
   getHasNext = defaultGetHasNext,
@@ -224,7 +226,8 @@ export function usePaginatedRequest<
   ScopeName
 > {
   const hookOptions = { getHasNext, ...restOptions };
-  const client = currentClient || defaultClient;
+  const clientFromContext = useClient();
+  const client = clientFromProps || clientFromContext || defaultClient;
 
   const fetchMoreRef = useRef<() => void>();
   const [fetchMoreId, setFetchMoreId] = useState(0);

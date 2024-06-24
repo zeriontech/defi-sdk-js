@@ -23,3 +23,5 @@ export { useAssetsCharts } from "./domains/useAssetsCharts";
 export { useAssetsFullInfo } from "./domains/useAssetsFullInfo";
 export { useAssetsInfo } from "./domains/useAssetsInfo";
 export { useAssetsPrices } from "./domains/useAssetsPrices";
+
+export { DefiSdkClientProvider, useClient } from "./context";
