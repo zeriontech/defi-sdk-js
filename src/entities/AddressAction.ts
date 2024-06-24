@@ -59,6 +59,7 @@ export interface AddressAction {
     hash: string;
     status: TransactionStatus;
     nonce: number;
+    sponsored: boolean;
     fee: {
       asset: ActionAsset;
       quantity: string;
