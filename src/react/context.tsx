@@ -1,6 +1,5 @@
 import React, { useContext } from "react";
 import type { Client } from "../client";
-import { client as defaultClient } from "../client";
 
 const ClientContext = React.createContext<Client | null>(null);
 
@@ -16,7 +15,7 @@ export function DefiSdkClientProvider({
   );
 }
 
-export function useClient(): Client {
+export function useClient(): Client | null {
   const client = useContext(ClientContext);
-  return client || defaultClient;
+  return client;
 }
