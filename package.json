@@ -6,9 +6,9 @@
   "source": "./src/index.ts",
   "exports": {
     ".": {
-      "default": "./lib/defi-sdk.modern.js",
       "require": "./lib/defi-sdk.js",
-      "types": "./lib/index.d.ts"
+      "types": "./lib/index.d.ts",
+      "default": "./lib/defi-sdk.modern.js"
     }
   },
   "module": "lib/defi-sdk.module.js",
