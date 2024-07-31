@@ -45,7 +45,7 @@ export interface ActionTransfers {
   incoming?: ActionTransfer[];
 }
 
-interface ApprovalNFTCollection extends NFTCollection {
+interface ApprovalNFTCollection extends Omit<NFTCollection, "id"> {
   id: string;
 }
 

@@ -40,7 +40,7 @@ interface NFTPrice {
 }
 
 export interface NFTCollection {
-  id: string;
+  id: number;
   name?: string;
   description?: string;
   icon_url?: string;
