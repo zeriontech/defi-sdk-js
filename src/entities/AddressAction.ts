@@ -11,7 +11,7 @@ export type ActionType =
   | "receive"
   | "trade"
   | "approve"
-  | "revoke_approval"
+  | "revoke"
   | "execute"
   | "deploy"
   | "cancel"
