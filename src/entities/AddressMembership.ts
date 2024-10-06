@@ -41,7 +41,7 @@ export interface ReferrerNFT {
   metadata: {
     name: string | null;
     content: {
-      type: string;
+      type: "video" | "image" | "audio";
       audio_url: string | null;
       image_preview_url: string | null;
       image_url: string | null;
