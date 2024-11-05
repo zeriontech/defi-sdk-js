@@ -66,7 +66,7 @@ export interface AddressAction {
       quantity: string;
       price: number | null;
     } | null;
-    gasback: number | null;
+    gasback?: number | null;
   };
   label: {
     type: "to" | "from" | "application" | "contract";
