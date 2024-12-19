@@ -13,6 +13,7 @@ export type Payload = AddressParams & {
 export const namespace = "address";
 export const scope = "portfolio";
 
+/** @deprecated Use `addressPortfolioDecomposition` instead */
 export const addressPortfolio = createDomainRequest<
   Payload,
   Portfolio,
