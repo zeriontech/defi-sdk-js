@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import equal from "fast-deep-equal";
-import { MergeStrategy } from "./../shared/mergeStrategies";
+import { MergeStrategy } from "../shared/mergeStrategies";
 import {
   Client,
   ConvenienceOptionsCached,
@@ -18,44 +18,32 @@ import { shouldReturnCachedData } from "../cache/shouldReturnCachedData";
 import { defaultCachePolicy } from "../cache/defaultCachePolicy";
 import { useClient } from "./context";
 
+// Фиксированные состояния
 const emptyEntryIdle = getInitialState<any, any>();
 const emptyEntryLoading = getInitialState<any, any>(DataStatus.requested);
 
+// Типы для хуков
 type HookExtraOptions = {
   client?: Client;
   keepStaleData?: boolean;
   enabled?: boolean;
 };
 
-export type HookOptions<
-  Namespace extends string = any,
-  ScopeName extends string = any
-> = ConvenienceOptionsCached<Namespace, ScopeName> & HookExtraOptions;
+export type HookOptions<Namespace extends string = any, ScopeName extends string = any> =
+  ConvenienceOptionsCached<Namespace, ScopeName> & HookExtraOptions;
 
-export type PaginatedHookOptions<
-  Namespace extends string = any,
-  ScopeName extends string = any,
-  T = unknown
-> = PaginatedOptionsCached<Namespace, ScopeName> &
+export type PaginatedHookOptions<Namespace extends string = any, ScopeName extends string = any, T = unknown> =
+  PaginatedOptionsCached<Namespace, ScopeName> &
   HookExtraOptions & {
     method?: "get" | "stream";
     paginatedCacheMode?: PaginatedCacheMode;
-    getHasNext?(
-      data: Result<T[], ScopeName>,
-      options: PaginatedOptionsCached<Namespace, ScopeName>
-    ): boolean;
+    getHasNext?(data: Result<T[], ScopeName>, options: PaginatedOptionsCached<Namespace, ScopeName>): boolean;
   };
 
-export type PaginatedResult<T, ScopeName extends string = any> = Result<
-  T,
-  ScopeName
-> & { fetchMore?(): void };
+export type PaginatedResult<T, ScopeName extends string = any> = Result<T, ScopeName> & { fetchMore?(): void };
 
-function getResultEntry<
-  T,
-  ScopeName extends string,
-  R extends Result<T, ScopeName>
->({
+// Функция для получения результата из кеша
+const getResultEntry = <T, ScopeName extends string, R extends Result<T, ScopeName>>({
   entry,
   enabled,
   cachePolicy,
@@ -63,122 +51,60 @@ function getResultEntry<
   entry: R | null;
   enabled: HookOptions["enabled"];
   cachePolicy: HookOptions["cachePolicy"];
-}) {
-  const entryHasOrWillHaveRequest = enabled && cachePolicy !== "cache-only";
-  const entryHasNotYetMadeRequest = entry
-    ? entry.status === DataStatus.noRequests && !entry.data
-    : true;
-  const emptyEntry = entryHasOrWillHaveRequest
-    ? emptyEntryLoading
-    : emptyEntryIdle;
-  if (!entry || (entryHasOrWillHaveRequest && entryHasNotYetMadeRequest)) {
-    return emptyEntry;
-  }
-  return entry;
-}
+}) => {
+  const shouldLoad = enabled && cachePolicy !== "cache-only";
+  const entryIsEmpty = !entry || (shouldLoad && entry.status === DataStatus.noRequests && !entry.data);
+  
+  return entryIsEmpty ? (shouldLoad ? emptyEntryLoading : emptyEntryIdle) : entry;
+};
 
+// Хук для запроса данных
 function useRequestData<T, Namespace extends string, ScopeName extends string>({
   keepStaleData,
   client,
   ...hookOptions
-}: (
-  | ConvenienceOptionsCached<Namespace, ScopeName>
-  | PaginatedOptionsCached<Namespace, ScopeName>
-) &
-  Required<HookExtraOptions>) {
-  const [entry, setEntry] = useState<Result<T, ScopeName> | null>(
-    client.getFromCache(hookOptions)
-  );
+}: (ConvenienceOptionsCached<Namespace, ScopeName> | PaginatedOptionsCached<Namespace, ScopeName>) & Required<HookExtraOptions>) {
+  const [entry, setEntry] = useState<Result<T, ScopeName> | null>(client.getFromCache(hookOptions));
 
-  const guardedSetEntry = useCallback(
-    (entry: Result<T, ScopeName> | null) => {
-      setEntry(prevEntry => {
-        if (!keepStaleData) {
-          return entry;
-        }
-        if (!prevEntry) {
-          return entry;
-        }
-        const newEntryHasData = entry ? hasData(entry.status) : false;
-        const prevEntryHasData = hasData(prevEntry.status);
-        if (!newEntryHasData && prevEntryHasData) {
-          return {
-            ...prevEntry,
-            status: entry ? entry.status : prevEntry.status,
-            isDone: entry ? entry.isDone : prevEntry.isDone,
-            isFetching: entry ? entry.isFetching : prevEntry.isFetching,
-            isLoading: entry ? entry.isLoading : prevEntry.isLoading,
-            isError: entry ? entry.isError : prevEntry.isError,
-            error: entry ? entry.error : prevEntry.error,
-          };
-        }
-        return entry;
-      });
-    },
-    [keepStaleData]
-  );
+  const guardedSetEntry = useCallback((entry: Result<T, ScopeName> | null) => {
+    setEntry(prev => {
+      if (!keepStaleData) return entry;
+      if (!prev) return entry;
 
-  const { socketNamespace, namespace } = hookOptions as Omit<
-    ConvenienceOptionsCached<Namespace, ScopeName>,
-    "enabled"
-  > & {
-    socketNamespace?: SocketNamespace<Namespace>;
-    namespace?: Namespace;
-  };
+      const newHasData = entry ? hasData(entry.status) : false;
+      const prevHasData = hasData(prev.status);
 
-  const [stableHookOptions, setStableHookOptions] = useState(hookOptions);
-  const [stableOptions, setStableOptions] = useState<any>({});
+      if (!newHasData && prevHasData) {
+        return { ...prev, ...entry, status: prev.status };
+      }
 
-  if (stableHookOptions !== hookOptions) {
-    if (!equal(stableHookOptions, hookOptions)) {
-      setStableHookOptions(hookOptions);
+      return entry;
+    });
+  }, [keepStaleData]);
+
+  const { socketNamespace, namespace } = hookOptions;
+
+  const options = useMemo(() => ({
+    ...hookOptions,
+    socketNamespace,
+    namespace,
+    onData: guardedSetEntry,
+  }), [hookOptions, socketNamespace, namespace, guardedSetEntry]);
+
+  const newEntry = useMemo(() => client.getFromCache(hookOptions), [client, hookOptions]);
+  useEffect(() => {
+    if (newEntry !== entry && shouldReturnCachedData(options.cachePolicy || defaultCachePolicy)) {
+      if (!keepStaleData) {
+        guardedSetEntry(newEntry);
+      }
     }
-  }
+  }, [newEntry, entry, options.cachePolicy, keepStaleData, guardedSetEntry]);
 
-  const options = useMemo(() => {
-    return Object.assign(
-      {},
-      stableHookOptions,
-      socketNamespace ? { socketNamespace } : null,
-      namespace ? { namespace } : null,
-      { onData: guardedSetEntry }
-    );
-  }, [stableHookOptions, namespace, socketNamespace, guardedSetEntry]);
-
-  if (stableOptions !== options) {
-    if (!equal(stableOptions, options)) {
-      setStableOptions(options);
-    }
-  }
-
-  /**
-   * NOTE:
-   * Entry might have changed has changed since our last render,
-   * so we read from cache synchronously and update data if it had changed
-   * This should be done synchronously to avoid returning mismatched values
-   * https://github.com/facebook/react/blob/93a0c2830534cfbc4e6be3ecc9c9fc34dee3cfaa/packages/use-subscription/src/useSubscription.js#L41-L56
-   */
-  const newEntry: null | Result<T, ScopeName> = useMemo(
-    () => client.getFromCache(hookOptions),
-    [client, hookOptions]
-  );
-  if (
-    newEntry !== entry &&
-    shouldReturnCachedData(options.cachePolicy || defaultCachePolicy)
-  ) {
-    if (!keepStaleData) {
-      guardedSetEntry(newEntry);
-    }
-  }
-
-  return { entry, setEntry: guardedSetEntry, options: stableOptions };
+  return { entry, setEntry: guardedSetEntry, options };
 }
 
-export function useSubscription<
-  T,
-  Namespace extends string = any,
-  ScopeName extends string = any
->({
+// Хук для подписки
+export function useSubscription<T, Namespace extends string = any, ScopeName extends string = any>({
   keepStaleData = false,
   enabled = true,
   client: clientFromProps,
@@ -194,9 +120,7 @@ export function useSubscription<
   });
 
   useEffect(() => {
-    if (!enabled) {
-      return;
-    }
+    if (!enabled) return;
     setEntry(client.getFromCache(options));
     const { unsubscribe } = client.cachedSubscribe(options);
     return unsubscribe;
@@ -209,11 +133,8 @@ export function useSubscription<
   });
 }
 
-export function usePaginatedRequest<
-  T,
-  Namespace extends string = any,
-  ScopeName extends string = any
->({
+// Хук для пагинации
+export function usePaginatedRequest<T, Namespace extends string = any, ScopeName extends string = any>({
   keepStaleData = false,
   enabled = true,
   client: clientFromProps,
@@ -221,80 +142,47 @@ export function usePaginatedRequest<
   body,
   getHasNext = defaultGetHasNext,
   ...restOptions
-}: PaginatedHookOptions<Namespace, ScopeName, T>): PaginatedResult<
-  T[],
-  ScopeName
-> {
-  const hookOptions = { getHasNext, ...restOptions };
+}: PaginatedHookOptions<Namespace, ScopeName, T>): PaginatedResult<T[], ScopeName> {
   const clientFromContext = useClient();
   const client = clientFromProps || clientFromContext || defaultClient;
 
   const fetchMoreRef = useRef<() => void>();
   const [fetchMoreId, setFetchMoreId] = useState(0);
 
-  const { entry, setEntry, options } = useRequestData<
-    T[],
-    Namespace,
-    ScopeName
-  >({
+  const { entry, setEntry, options } = useRequestData<T[], Namespace, ScopeName>({
     keepStaleData,
     client,
     enabled,
     body,
-    ...hookOptions,
+    ...restOptions,
   });
 
   useEffect(() => {
-    if (!enabled) {
-      return;
-    }
+    if (!enabled) return;
     setEntry(client.getFromCache(options));
-    const {
-      unsubscribe,
-      fetchMore: clientFetchMore,
-    } = client.cachedPaginatedRequest({
-      ...options,
-      paginatedCacheMode,
-    });
-    fetchMoreRef.current = clientFetchMore;
-    setFetchMoreId(current => current + 1);
+    const { unsubscribe, fetchMore } = client.cachedPaginatedRequest({ ...options, paginatedCacheMode });
+    fetchMoreRef.current = fetchMore;
+    setFetchMoreId(id => id + 1);
     return unsubscribe;
-  }, [
-    enabled,
-    options,
-    setEntry,
-    client,
-    paginatedCacheMode,
-    hookOptions.method,
-  ]);
+  }, [enabled, options, setEntry, client, paginatedCacheMode]);
 
   return useMemo(() => {
-    const resultEntry = getResultEntry<
-      T[],
-      ScopeName,
-      PaginatedResult<T[], ScopeName>
-    >({
+    const resultEntry = getResultEntry<T[], ScopeName, PaginatedResult<T[], ScopeName>>({
       entry,
       enabled,
       cachePolicy: options.cachePolicy,
-    }) as PaginatedResult<T[], ScopeName>;
+    });
 
     if (fetchMoreId) {
-      return {
-        ...resultEntry,
-        fetchMore: fetchMoreRef.current,
-      };
+      return { ...resultEntry, fetchMore: fetchMoreRef.current };
     }
 
     return resultEntry;
   }, [entry, enabled, options.cachePolicy, fetchMoreId]);
 }
 
-export function usePaginatedSubscription<
-  T,
-  Namespace extends string = any,
-  ScopeName extends string = any
->({
+// Хук для пагинированной подписки
+export function usePaginatedSubscription<T, Namespace extends string = any, ScopeName extends string = any>({
   listenForUpdates = true,
   subscriptionMergeStrategy,
   cursorKey,
@@ -303,56 +191,16 @@ export function usePaginatedSubscription<
   listenForUpdates?: boolean;
   subscriptionMergeStrategy?: MergeStrategy;
 }): Omit<PaginatedResult<T[], ScopeName>, "data"> {
-  const { value: subscriptionValue, ...subscriptionEntry } = useSubscription<
-    T[],
-    Namespace,
-    ScopeName
-  >({
+  const { value: subscriptionValue, ...subscriptionEntry } = useSubscription<T[], Namespace, ScopeName>({
     ...hookOptions,
-    body: {
-      ...hookOptions.body,
-      payload: {
-        ...hookOptions.body.payload,
-        [hookOptions.limitKey]: Math.min(5, hookOptions.limit - 1), // to distinguish subscribe and stream params requests' params
-      },
-    },
+    body: { ...hookOptions.body, payload: { ...hookOptions.body.payload, [hookOptions.limitKey]: Math.min(5, hookOptions.limit - 1) } },
     mergeStrategy: subscriptionMergeStrategy,
     method: "subscribe",
     enabled: listenForUpdates && hookOptions.enabled,
   });
 
-  const { value: paginatedValue, ...paginatedEntry } = usePaginatedRequest<
-    T,
-    Namespace,
-    ScopeName
-  >({ ...hookOptions, cursorKey });
+  const { value: paginatedValue, ...paginatedEntry } = usePaginatedRequest<T, Namespace, ScopeName>({ ...hookOptions, cursorKey });
 
-  const getIdRef = useRef<(item: T) => string | number>(item => {
-    if (hookOptions.getId) {
-      return hookOptions.getId?.(item);
-    }
-    if ("id" in (item as any)) {
-      return (item as any).id;
-    }
-    throw new Error(
-      "Request params should contain getId, because response items don't have id field"
-    );
-  });
+  const getIdRef = useRef<(item: T) => string | number>(item => hookOptions.getId?.(item) ?? item.id);
 
-  const value = useMemo(() => {
-    const paginatedIdSet = new Set(
-      paginatedValue?.map(item => getIdRef.current(item))
-    );
-    const filteredSubscriptionValue = subscriptionValue?.filter(
-      item => !paginatedIdSet.has(getIdRef.current(item))
-    );
-    return [...(filteredSubscriptionValue || []), ...(paginatedValue || [])];
-  }, [subscriptionValue, paginatedValue]);
-
-  return {
-    ...paginatedEntry,
-    value,
-    isLoading: subscriptionEntry.isLoading || paginatedEntry.isLoading,
-    isFetching: subscriptionEntry.isFetching || paginatedEntry.isFetching,
-  };
-}
+  const value = use
